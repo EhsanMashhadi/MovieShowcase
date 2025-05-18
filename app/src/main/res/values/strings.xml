@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">MovieShowcase</string>
+    <string name="all_dashboard">Dashboard</string>
+    <string name="all_search">Search</string>
+    <string name="all_error">Sorry, we\'re unable to load the movies at this time. Please try again later</string>
+    <string name="all_seeMore">SEE MORE</string>
+    <string name="all_latest">Latest</string>
+    <string name="all_dot">.</string>
+
+    <string name="dashboard_topFiveTitle">Top Five</string>
+
+    <string name="contentDescription_unSave">Remove from saved</string>
+    <string name="contentDescription_save">Save movie</string>
+    <string name="contentDescription_moviePoster">Movie poster for %1$s</string>
+    <string name="contentDescription_darkTheme">dark theme icon</string>
+    <string name="contentDescription_lightTheme">Light theme icon</string>
+    <string name="contentDescription_savedIcon">Saved icon</string>
+    <string name="contentDescription_saveIcon">Save icon</string>
+</resources>
