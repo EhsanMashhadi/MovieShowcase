@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import software.ehsan.movieshowcase.feature.dashboard.DashboardScreen
 import software.ehsan.movieshowcase.feature.detail.DetailScreen
+import software.ehsan.movieshowcase.feature.latest.LatestScreen
 
 @Composable
 fun AppNavHost(
@@ -24,6 +25,9 @@ fun AppNavHost(
                 goToDetail = {
                     navController.navigateSafe(route = Screens.MovieDetails(it))
                 },
+                goToLatest = {
+                    navController.navigateSafe(route = Screens.Latest)
+                },
                 isDarkTheme = isDarkTheme,
                 toggleTheme = toggleTheme
             )
@@ -31,6 +35,13 @@ fun AppNavHost(
         composable<Screens.MovieDetails> { backStackEntry ->
             val movie: Screens.MovieDetails = backStackEntry.toRoute()
             DetailScreen(movieId = movie.movieId, onBack = { navController.popBackStack() })
+        }
+        composable<Screens.Latest> { backStackEntry ->
+            LatestScreen(onBack = { navController.popBackStack() }, onGoToDetails = {
+                navController.navigateSafe(
+                    route = Screens.MovieDetails(it.id)
+                )
+            })
         }
     }
 }

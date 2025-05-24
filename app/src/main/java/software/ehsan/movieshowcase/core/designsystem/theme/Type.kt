@@ -31,6 +31,7 @@ val MovieShowCaseTypography = Typography().run {
         titleMedium = titleMedium.copy(fontFamily = PoppinsFontFamily),
         titleSmall = titleSmall.copy(fontFamily = PoppinsFontFamily),
         bodyLarge = bodyLarge.copy(fontFamily = PoppinsFontFamily),
+        bodyMedium = bodyMedium.copy(fontFamily = PoppinsFontFamily),
         bodySmall = bodySmall.copy(fontFamily = PoppinsFontFamily)
     )
 }

@@ -4,6 +4,7 @@ import kotlinx.coroutines.withContext
 import okio.IOException
 import software.ehsan.movieshowcase.core.cache.MovieCache
 import software.ehsan.movieshowcase.core.cache.mapper.asEntity
+import software.ehsan.movieshowcase.core.model.Genre
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.core.network.mapper.asDomain
@@ -58,32 +59,47 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getLastMovie(): Result<Movie> = withContext(dispatcherProvider.io) {
-        try {
-            val latestMovieResponse = movieApiService.getLatestMovie()
-            if (!latestMovieResponse.isSuccessful) {
-                return@withContext Result.failure(
-                    ApiException.ServerException(
-                        latestMovieResponse.code(),
-                        latestMovieResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
+
+    override suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies> =
+        withContext(dispatcherProvider.io) {
+            try {
+                val latestMovieResponse = movieApiService.getLatestMovies(
+                    releaseDateLte = releaseDateLte,
+                    genreId = genre?.id
+                )
+                if (!latestMovieResponse.isSuccessful) {
+                    return@withContext Result.failure(
+                        ApiException.ServerException(
+                            latestMovieResponse.code(),
+                            latestMovieResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
+                        )
+                    )
+                }
+                val moviesResponse =
+                    latestMovieResponse.body() ?: return@withContext Result.failure(
+                        ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
+                    )
+                val genresMapping = getGenreMapping()
+                val moviesList = moviesResponse.results.map { topMovie ->
+                    val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
+                    val movieDomain = topMovie.asDomain(genreNames)
+                    movieCache.saveMovie(topMovie.asEntity(genreNames))
+                    movieDomain
+                }
+                return@withContext Result.success(
+                    Movies(
+                        moviesResponse.page,
+                        moviesList,
+                        moviesResponse.totalPages,
+                        moviesResponse.totalResults
                     )
                 )
+            } catch (ioException: IOException) {
+                return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
+            } catch (exception: Exception) {
+                return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
             }
-            val latestMovie =
-                latestMovieResponse.body()?.results?.first() ?: return@withContext Result.failure(
-                    ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
-                )
-            val genresMapping = getGenreMapping()
-            val genresName = latestMovie.genres?.mapNotNull { genresMapping[it] }
-            val movie = latestMovie.asDomain(genresName)
-            movieCache.saveMovie(latestMovie.asEntity(genresName))
-            return@withContext Result.success(movie)
-        } catch (ioException: IOException) {
-            return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
-        } catch (exception: Exception) {
-            return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
         }
-    }
 
     override suspend fun getMovieDetails(movieId: Int): Result<Movie> =
         withContext(dispatcherProvider.io) {

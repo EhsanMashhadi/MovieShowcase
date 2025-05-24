@@ -11,13 +11,13 @@ import org.junit.Test
 import retrofit2.Response
 import software.ehsan.movieshowcase.core.network.model.MoviesResponse
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
-import software.ehsan.movieshowcase.fixtures.MoviesResponseFixture
+import software.ehsan.movieshowcase.fixtures.MovieFixture
 
 class MoviesApiTest {
 
     @Test
     fun getTopMovies_returnsSuccess_successResponse() = runTest {
-        val expectedMovie = MoviesResponseFixture.fiveMoviesResponse
+        val expectedMovie = MovieFixture.fiveMoviesResponse
         val movieApi: MovieApiService = mockk()
         coEvery { movieApi.getTopMovies() } returns Response.success(expectedMovie)
         val actualMovies = movieApi.getTopMovies()

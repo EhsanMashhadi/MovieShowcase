@@ -23,6 +23,7 @@ moshi = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
 navigationCompose = "2.8.9"
 retrofit = "2.11.0"
+robolectric = "4.12.1"
 uiTestJunit4 = "1.7.8"
 uiTestManifest = "1.7.8"
 
@@ -59,6 +60,7 @@ moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", ver
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestManifest" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
