@@ -6,8 +6,10 @@
     <string name="all_seeMore">SEE MORE</string>
     <string name="all_latest">Latest</string>
     <string name="all_dot">.</string>
-
+    <string name="all_allGenres">All</string>
+    
     <string name="dashboard_topFiveTitle">Top Five</string>
+    <string name="latestScreen_appBarTitle">Discover</string>
 
     <string name="contentDescription_unSave">Remove from saved</string>
     <string name="contentDescription_save">Save movie</string>

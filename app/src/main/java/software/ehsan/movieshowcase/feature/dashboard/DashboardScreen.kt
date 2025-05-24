@@ -57,6 +57,7 @@ import software.ehsan.movieshowcase.core.model.Movies
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     goToDetail: (movieId: Int) -> Unit,
+    goToLatest: () -> Unit,
     isDarkTheme: Boolean = false,
     toggleTheme: () -> Unit = {}
 ) {
@@ -68,8 +69,10 @@ fun DashboardScreen(
             dashboardState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
-        ) { goToDetail(it) }
+                .padding(it),
+            goToDetail = goToDetail,
+            goToLatest = goToLatest
+        )
     }
     LaunchedEffect(Unit) {
         viewModel.handleIntent(DashboardIntent.LoadAllMovies)
@@ -126,7 +129,8 @@ private fun DashboardTopBar(text: AnnotatedString, isDarkTheme: Boolean, toggleT
 fun DashboardContent(
     dashboardState: DashboardState,
     modifier: Modifier = Modifier,
-    goToDetail: (movieId: Int) -> Unit = {}
+    goToDetail: (movieId: Int) -> Unit,
+    goToLatest: () -> Unit
 ) {
     when (dashboardState) {
         is DashboardState.Idle -> {}
@@ -139,7 +143,8 @@ fun DashboardContent(
                 topMovies = dashboardState.topMovies,
                 latestMovie = dashboardState.latestMovie,
                 modifier = modifier,
-                goToDetail = goToDetail
+                goToDetail = goToDetail,
+                goToLatest = goToLatest
             )
         }
 
@@ -154,7 +159,8 @@ private fun DashboardSuccessContent(
     topMovies: Movies?,
     latestMovie: Movie?,
     modifier: Modifier = Modifier,
-    goToDetail: (movieId: Int) -> Unit
+    goToDetail: (movieId: Int) -> Unit,
+    goToLatest: () -> Unit
 ) {
     val lazyColumnState = rememberLazyListState()
     LazyColumn(
@@ -189,7 +195,9 @@ private fun DashboardSuccessContent(
                         stringResource(R.string.all_seeMore),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.clickable { })
+                        modifier = Modifier.clickable {
+                            goToLatest()
+                        })
                 }
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.l))
                 Latest(item = it, goToDetail = goToDetail)
@@ -262,7 +270,10 @@ fun PreviewMovieShowcaseContentSuccess() {
                         1,
                         1
                     ), latestMovie = Movie(1, "title 1", "ds", emptyList(), 3.5f, "")
-                )
+                ),
+                modifier = Modifier,
+                goToDetail = {},
+                goToLatest = { }
             )
         }
     }
@@ -273,7 +284,12 @@ fun PreviewMovieShowcaseContentSuccess() {
 fun PreviewMovieShowcaseContentError() {
     MovieShowcaseTheme {
         Surface {
-            DashboardContent(dashboardState = DashboardState.Error(""))
+            DashboardContent(
+                dashboardState = DashboardState.Error(""),
+                modifier = Modifier,
+                goToDetail = {},
+                goToLatest = {}
+            )
         }
     }
 }

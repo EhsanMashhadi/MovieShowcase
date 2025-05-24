@@ -40,7 +40,7 @@ class DashboardViewModelTest {
 
     @Test
     fun loadAllMovies_returnLatestAndTopMovies_showSuccessLatestAndTopMovies() = runTest {
-        val latestMovie = MovieFixture.movie(1).first()
+        val latestMovie = MovieFixture.movies(1)
         val topMovies = MovieFixture.movies(5)
         coEvery { getLatestMoviesUseCase.invoke() } returns Result.success(latestMovie)
         coEvery { getTopMoviesUseCase.invoke() } returns Result.success(topMovies)
@@ -51,13 +51,13 @@ class DashboardViewModelTest {
         advanceUntilIdle()
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Success)
         val successState = dashboardViewModel.uiState.value as DashboardState.Success
-        Assert.assertEquals(latestMovie.title, successState.latestMovie?.title)
+        Assert.assertEquals(latestMovie.results[0].title, successState.latestMovie?.title)
         Assert.assertEquals(topMovies, successState.topMovies)
     }
 
     @Test
     fun loadAllMovies_returnOnlyLatestMovie_showSuccessOnlyLatestMovie() = runTest {
-        val latestMovie = MovieFixture.movie(1).first()
+        val latestMovie = MovieFixture.movies(1)
         coEvery { getLatestMoviesUseCase.invoke() } returns Result.success(latestMovie)
         coEvery { getTopMoviesUseCase.invoke() } returns Result.failure(Exception("error"))
         val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
@@ -67,7 +67,7 @@ class DashboardViewModelTest {
         advanceUntilIdle()
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Success)
         val successState = dashboardViewModel.uiState.value as DashboardState.Success
-        Assert.assertEquals(latestMovie.title, successState.latestMovie?.title)
+        Assert.assertEquals(latestMovie.results[0].title, successState.latestMovie?.title)
         Assert.assertNull(successState.topMovies)
     }
 

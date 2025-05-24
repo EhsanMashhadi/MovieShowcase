@@ -99,10 +99,13 @@ fun MovieCard(
     genres: List<String>?,
     modifier: Modifier = Modifier,
     isSaved: Boolean = false,
+    portrait: Boolean = false,
     onSave: () -> Unit,
     onClick: () -> Unit
 ) {
     val displayedRating = getDisplayRating(rating)
+    val aspectRatio = if (portrait) 2f / 3f else 3f / 2f
+    val maxLine = if (portrait) 2 else 1
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -113,7 +116,7 @@ fun MovieCard(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(3f / 2f),
+                .aspectRatio(aspectRatio),
             border = CardDefaults.outlinedCardBorder()
         ) {
             MovieImageWithSaveIcon(
@@ -127,17 +130,19 @@ fun MovieCard(
         Text(
             title,
             style = MaterialTheme.typography.titleLarge,
-            maxLines = 1,
+            maxLines = maxLine,
             overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(MaterialTheme.spacing.xs))
         DisplayRating(rating = rating)
-        Text(
-            genres?.joinToString(", ") ?: "",
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        genres?.let {
+            Text(
+                it.joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
         Spacer(Modifier.height(MaterialTheme.spacing.xs))
     }
 }
@@ -217,22 +222,6 @@ fun PreviewMovieCard() {
                     isSaved = true,
                     onSave = {},
                     genres = listOf("comedy", "crime"),
-                    onClick = {})
-                MovieCard(
-                    "Another Movie Title",
-                    2.0f,
-                    imageUrl = "/some_other_image.jpg",
-                    isSaved = false,
-                    onSave = {},
-                    genres = listOf("action", "thriller", "long genre name test"),
-                    onClick = {})
-                MovieCard(
-                    "Short",
-                    10.0f,
-                    imageUrl = "",
-                    isSaved = false,
-                    onSave = {},
-                    genres = listOf("drama"),
                     onClick = {})
             }
 

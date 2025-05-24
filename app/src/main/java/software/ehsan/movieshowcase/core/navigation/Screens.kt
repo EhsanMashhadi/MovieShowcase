@@ -9,4 +9,7 @@ sealed class Screens {
 
     @Serializable
     data object Dashboard : Screens()
+
+    @Serializable
+    data object Latest : Screens()
 }

@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val getTopMoviesUseCase: GetTopMoviesUseCase,
-    private val getLatestMoviesUseCase: GetLatestMoviesUseCase
+    private val getLatestMovieUseCase: GetLatestMoviesUseCase
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<DashboardState> = MutableStateFlow(DashboardState.Idle)
     val uiState = _uiState.asStateFlow()
@@ -29,7 +29,7 @@ class DashboardViewModel @Inject constructor(
                 _uiState.value = DashboardState.Loading
                 viewModelScope.launch {
                     val topMoviesDeferred = async { getTopMoviesUseCase() }
-                    val latestMovieDeferred = async { getLatestMoviesUseCase() }
+                    val latestMovieDeferred = async { getLatestMovieUseCase() }
                     val topMoviesResult = topMoviesDeferred.await()
                     val latestMovieResult = latestMovieDeferred.await()
                     when {
@@ -46,7 +46,7 @@ class DashboardViewModel @Inject constructor(
                             val latestMovie = latestMovieResult.getOrNull()
                             _uiState.value = DashboardState.Success(
                                 topMovies = topMovies,
-                                latestMovie = latestMovie
+                                latestMovie = latestMovie?.results?.firstOrNull()
                             )
                         }
                     }
