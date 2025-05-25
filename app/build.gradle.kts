@@ -4,11 +4,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.dagger.hilt)
     kotlin("plugin.serialization") version "2.0.21"
-    id("com.google.dagger.hilt.android")
-    id("kotlin-kapt")
-    id("com.google.devtools.ksp") version "2.1.10-1.0.31"
-    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -89,12 +87,11 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.coil.compose)
-    implementation(libs.coil.network.okhttp) // OkHttp for custom client
+    implementation(libs.coil.network.okhttp)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
