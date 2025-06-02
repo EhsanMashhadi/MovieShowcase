@@ -71,7 +71,8 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .padding(it),
             goToDetail = goToDetail,
-            goToLatest = goToLatest
+            goToLatest = goToLatest,
+            onBookmark = { viewModel.handleIntent(DashboardIntent.BookmarkMovie(it)) }
         )
     }
     LaunchedEffect(Unit) {
@@ -130,7 +131,8 @@ fun DashboardContent(
     dashboardState: DashboardState,
     modifier: Modifier = Modifier,
     goToDetail: (movieId: Int) -> Unit,
-    goToLatest: () -> Unit
+    goToLatest: () -> Unit,
+    onBookmark: (Movie) -> Unit
 ) {
     when (dashboardState) {
         is DashboardState.Idle -> {}
@@ -144,7 +146,8 @@ fun DashboardContent(
                 latestMovie = dashboardState.latestMovie,
                 modifier = modifier,
                 goToDetail = goToDetail,
-                goToLatest = goToLatest
+                goToLatest = goToLatest,
+                onBookmark = onBookmark
             )
         }
 
@@ -160,7 +163,8 @@ private fun DashboardSuccessContent(
     latestMovie: Movie?,
     modifier: Modifier = Modifier,
     goToDetail: (movieId: Int) -> Unit,
-    goToLatest: () -> Unit
+    goToLatest: () -> Unit,
+    onBookmark: (Movie) -> Unit
 ) {
     val lazyColumnState = rememberLazyListState()
     LazyColumn(
@@ -174,7 +178,7 @@ private fun DashboardSuccessContent(
     ) {
         topMovies?.let {
             item {
-                TopFiveList(items = it.results, goToDetail = goToDetail)
+                TopFiveList(items = it.results, goToDetail = goToDetail, onBookmark = onBookmark)
             }
         }
         latestMovie?.let {
@@ -200,7 +204,7 @@ private fun DashboardSuccessContent(
                         })
                 }
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.l))
-                Latest(item = it, goToDetail = goToDetail)
+                Latest(item = it, goToDetail = goToDetail, onBookmark = onBookmark)
             }
         }
     }
@@ -220,7 +224,11 @@ private fun DashboardErrorContent() {
 }
 
 @Composable
-private fun TopFiveList(items: List<Movie>, goToDetail: (movieId: Int) -> Unit = {}) {
+private fun TopFiveList(
+    items: List<Movie>,
+    goToDetail: (movieId: Int) -> Unit = {},
+    onBookmark: (movie: Movie) -> Unit
+) {
     val lazyRowState = rememberLazyListState()
     LazyRow(
         state = lazyRowState,
@@ -234,7 +242,8 @@ private fun TopFiveList(items: List<Movie>, goToDetail: (movieId: Int) -> Unit =
                 item.voteAverage,
                 imageUrl = item.posterPath,
                 onClick = { goToDetail(item.id) },
-                onSave = {},
+                isBookmarked = item.isBookmarked,
+                onBookmark = { onBookmark(item) },
                 genres = item.genres,
                 modifier = Modifier
                     .widthIn(max = 300.dp)
@@ -245,15 +254,21 @@ private fun TopFiveList(items: List<Movie>, goToDetail: (movieId: Int) -> Unit =
 }
 
 @Composable
-private fun Latest(item: Movie, goToDetail: (movieId: Int) -> Unit = {}) {
+private fun Latest(
+    item: Movie,
+    goToDetail: (movieId: Int) -> Unit = {},
+    onBookmark: (Movie) -> Unit
+) {
     MovieDetailsCard(
         item.title,
         item.voteAverage,
         imageUrl = item.posterPath,
         genres = item.genres,
         overview = item.overview,
+        isBookmarked = item.isBookmarked,
         onClick = { goToDetail(item.id) },
-        onSave = {})
+        onBookmark = { onBookmark(item) },
+    )
 }
 
 
@@ -273,7 +288,8 @@ fun PreviewMovieShowcaseContentSuccess() {
                 ),
                 modifier = Modifier,
                 goToDetail = {},
-                goToLatest = { }
+                goToLatest = {},
+                onBookmark = {}
             )
         }
     }
@@ -288,7 +304,8 @@ fun PreviewMovieShowcaseContentError() {
                 dashboardState = DashboardState.Error(""),
                 modifier = Modifier,
                 goToDetail = {},
-                goToLatest = {}
+                goToLatest = {},
+                onBookmark = {}
             )
         }
     }

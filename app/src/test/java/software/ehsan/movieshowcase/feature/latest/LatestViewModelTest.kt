@@ -4,6 +4,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -49,7 +50,7 @@ class LatestViewModelTest {
             context = RuntimeEnvironment.getApplication()
         )
         val movie = MovieFixture.movies(1)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns Result.success(movie)
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.success(movie))
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
         Assert.assertNull(detailViewModel.uiState.value.selectedGenre)
         Assert.assertTrue(detailViewModel.uiState.value.genresState is LatestViewModel.UiState.Loading)
@@ -65,12 +66,14 @@ class LatestViewModelTest {
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(genres)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns Result.success(
-            Movies(
-                page = 1,
-                totalPages = 1,
-                totalResults = 1,
-                results = emptyList()
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
+            Result.success(
+                Movies(
+                    page = 1,
+                    totalPages = 1,
+                    totalResults = 1,
+                    results = emptyList()
+                )
             )
         )
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
@@ -91,7 +94,7 @@ class LatestViewModelTest {
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns Result.success(movies)
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.success(movies))
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
         advanceUntilIdle()
         Assert.assertTrue(detailViewModel.uiState.value.moviesState is LatestViewModel.UiState.Success)
@@ -110,12 +113,14 @@ class LatestViewModelTest {
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.failure(exception)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns Result.success(
-            Movies(
-                page = 1,
-                totalPages = 1,
-                totalResults = 1,
-                results = emptyList()
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
+            Result.success(
+                Movies(
+                    page = 1,
+                    totalPages = 1,
+                    totalResults = 1,
+                    results = emptyList()
+                )
             )
         )
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
@@ -136,7 +141,7 @@ class LatestViewModelTest {
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns Result.failure(exception)
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.failure(exception))
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadLatest(selectedGenre = null))
         advanceUntilIdle()
         Assert.assertTrue(detailViewModel.uiState.value.moviesState is LatestViewModel.UiState.Error)

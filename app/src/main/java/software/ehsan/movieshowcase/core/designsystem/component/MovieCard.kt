@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,6 +34,8 @@ import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import coil3.compose.AsyncImage
 import software.ehsan.movieshowcase.core.designsystem.theme.MovieShowcaseTheme
 import software.ehsan.movieshowcase.core.designsystem.theme.ThemePreviews
@@ -47,9 +51,9 @@ private fun getDisplayRating(rating: Float): String {
 @Composable
 private fun MovieImageWithSaveIcon(
     imageUrl: String?,
-    isSaved: Boolean,
+    isBookmarked: Boolean,
     contentDescription: String,
-    onSave: () -> Unit,
+    onBookmark: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -60,21 +64,21 @@ private fun MovieImageWithSaveIcon(
             contentScale = ContentScale.FillBounds
         )
         val icon =
-            ImageVector.vectorResource(id = if (isSaved) MovieShowcaseIcons.SaveFilledIcon else MovieShowcaseIcons.SaveIcon)
+            ImageVector.vectorResource(id = if (isBookmarked) MovieShowcaseIcons.SaveFilledIcon else MovieShowcaseIcons.SaveIcon)
         Icon(
             imageVector = icon,
-            contentDescription = if (isSaved) "Saved icon" else "Save icon",
+            contentDescription = if (isBookmarked) "Saved icon" else "Save icon",
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = MaterialTheme.spacing.l, top = MaterialTheme.spacing.l)
                 .semantics {
-                    onClick(if (isSaved) "Remove from saved" else "Save movie") {
-                        onSave()
+                    onClick(if (isBookmarked) "Remove from saved" else "Save movie") {
+                        onBookmark()
                         true
                     }
                     role = Role.Button
                 }
-                .clickable { onSave() },
+                .clickable { onBookmark() },
             tint = Color.Unspecified
         )
     }
@@ -98,9 +102,9 @@ fun MovieCard(
     imageUrl: String?,
     genres: List<String>?,
     modifier: Modifier = Modifier,
-    isSaved: Boolean = false,
+    isBookmarked: Boolean = false,
     portrait: Boolean = false,
-    onSave: () -> Unit,
+    onBookmark: () -> Unit,
     onClick: () -> Unit
 ) {
     val displayedRating = getDisplayRating(rating)
@@ -121,8 +125,8 @@ fun MovieCard(
         ) {
             MovieImageWithSaveIcon(
                 imageUrl = imageUrl,
-                isSaved = isSaved,
-                onSave = onSave,
+                isBookmarked = isBookmarked,
+                onBookmark = onBookmark,
                 contentDescription = "Movie poster for $title"
             )
         }
@@ -155,14 +159,15 @@ fun MovieDetailsCard(
     genres: List<String>?,
     overview: String,
     modifier: Modifier = Modifier,
-    isSaved: Boolean = false,
-    onSave: () -> Unit,
+    isBookmarked: Boolean = false,
+    onBookmark: () -> Unit,
     onClick: () -> Unit
 ) {
     val displayedRating = getDisplayRating(rating)
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .height(240.dp)
             .clickable(onClickLabel = "View movie details for $title") { onClick() }
             .semantics {
                 contentDescription = "Movie card for $title rating $displayedRating"
@@ -174,8 +179,8 @@ fun MovieDetailsCard(
         ) {
             MovieImageWithSaveIcon(
                 imageUrl = imageUrl,
-                isSaved = isSaved,
-                onSave = onSave,
+                isBookmarked = isBookmarked,
+                onBookmark = onBookmark,
                 contentDescription = "Movie poster for $title"
             )
         }
@@ -219,8 +224,8 @@ fun PreviewMovieCard() {
                     "Hitman’s Wife’s Bodyguard",
                     7.0f,
                     imageUrl = "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
-                    isSaved = true,
-                    onSave = {},
+                    isBookmarked = true,
+                    onBookmark = {},
                     genres = listOf("comedy", "crime"),
                     onClick = {})
             }
@@ -239,20 +244,20 @@ fun PreviewMovieDetailsCard() {
                     "Hitman’s Wife’s Bodyguard",
                     7.0f,
                     imageUrl = "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
-                    isSaved = true,
+                    isBookmarked = true,
                     genres = listOf("comedy", "crime"),
                     overview = "long text ".repeat(1) + "end.",
-                    onSave = {},
+                    onBookmark = {},
                     onClick = {})
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.l))
                 MovieDetailsCard(
                     "Short Title",
                     4.5f,
                     imageUrl = "",
-                    isSaved = false,
+                    isBookmarked = false,
                     genres = listOf("action", "thriller", "another genre"),
                     overview = "short overview.",
-                    onSave = {},
+                    onBookmark = {},
                     onClick = {})
             }
 

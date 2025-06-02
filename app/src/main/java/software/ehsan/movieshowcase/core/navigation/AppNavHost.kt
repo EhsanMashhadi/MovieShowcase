@@ -9,6 +9,7 @@ import androidx.navigation.Navigator
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import software.ehsan.movieshowcase.feature.bookmark.BookmarkScreen
 import software.ehsan.movieshowcase.feature.dashboard.DashboardScreen
 import software.ehsan.movieshowcase.feature.detail.DetailScreen
 import software.ehsan.movieshowcase.feature.latest.LatestScreen
@@ -27,6 +28,7 @@ fun AppNavHost(
                 },
                 goToLatest = {
                     navController.navigateSafe(route = Screens.Latest)
+//                    navController.navigateSafe(route = Screens.Bookmarks)
                 },
                 isDarkTheme = isDarkTheme,
                 toggleTheme = toggleTheme
@@ -38,6 +40,13 @@ fun AppNavHost(
         }
         composable<Screens.Latest> { backStackEntry ->
             LatestScreen(onBack = { navController.popBackStack() }, onGoToDetails = {
+                navController.navigateSafe(
+                    route = Screens.MovieDetails(it.id)
+                )
+            })
+        }
+        composable<Screens.Bookmarks> {
+            BookmarkScreen(onBack = { navController.popBackStack() }, onGoToDetails = {
                 navController.navigateSafe(
                     route = Screens.MovieDetails(it.id)
                 )

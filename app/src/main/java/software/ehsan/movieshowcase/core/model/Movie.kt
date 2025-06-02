@@ -14,5 +14,5 @@ data class Movie(
     val genres: List<String>?,
     val voteAverage: Float,
     val posterPath: String?,
-    val isSaved: Boolean = false
+    val isBookmarked: Boolean = false
 )

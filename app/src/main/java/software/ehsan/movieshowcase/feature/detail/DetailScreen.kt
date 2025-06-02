@@ -1,5 +1,6 @@
 package software.ehsan.movieshowcase.feature.detail
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.onClick
@@ -55,17 +57,37 @@ fun DetailScreen(
     onBack: () -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+
     val showSaveButton = uiState.value is DetailState.Success
-    val isSaved = (uiState.value as? DetailState.Success)?.movie?.isSaved == true
+    val isBookmarked = (uiState.value as? DetailState.Success)?.movie?.isBookmarked == true
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is DetailEvent.ShowToast -> {
+                    Toast.makeText(
+                        context,
+                        context.getString(event.messageResId),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
     Scaffold { paddingValues ->
         Box(modifier = Modifier.fillMaxSize()) {
             DetailContent(uiState.value)
-            DetailTopBar(
-                onBack = onBack,
-                showSaveButton = showSaveButton,
-                isSaved = isSaved,
-                onSave = {}
-            )
+            if (uiState.value is DetailState.Success) {
+                DetailTopBar(
+                    onBack = onBack,
+                    showSaveButton = showSaveButton,
+                    isBookmarked = isBookmarked,
+                    onBookmark = { viewModel.handleIntent(DetailIntent.ToggleBookmark((uiState.value as DetailState.Success).movie)) }
+                )
+            }
+
         }
 
     }
@@ -163,8 +185,8 @@ private fun DetailErrorContent() {
 private fun DetailTopBar(
     onBack: () -> Unit,
     showSaveButton: Boolean,
-    isSaved: Boolean,
-    onSave: (() -> Unit)
+    isBookmarked: Boolean,
+    onBookmark: (() -> Unit)
 ) {
     AppTopAppBar(
         color = TopAppBarDefaults.topAppBarColors()
@@ -172,24 +194,24 @@ private fun DetailTopBar(
         actionItem = {
             if (showSaveButton) {
                 val contentDescription =
-                    if (isSaved) stringResource(R.string.contentDescription_unSave) else stringResource(
+                    if (isBookmarked) stringResource(R.string.contentDescription_unSave) else stringResource(
                         R.string.contentDescription_save
                     )
                 IconButton(
-                    onClick = { onSave() }, modifier = Modifier
+                    onClick = { onBookmark() }, modifier = Modifier
                         .semantics {
                             onClick(contentDescription) {
-                                onSave()
+                                onBookmark()
                                 true
                             }
                         }
-                        .clickable { onSave() }) {
+                        .clickable { onBookmark() }) {
                     val icon =
-                        ImageVector.vectorResource(id = if (isSaved) MovieShowcaseIcons.SaveFilledIcon else MovieShowcaseIcons.SaveIcon)
+                        ImageVector.vectorResource(id = if (isBookmarked) MovieShowcaseIcons.SaveFilledIcon else MovieShowcaseIcons.SaveIcon)
                     Icon(
                         tint = MaterialTheme.colorScheme.tertiary,
                         imageVector = icon,
-                        contentDescription = if (isSaved) stringResource(R.string.contentDescription_savedIcon) else stringResource(
+                        contentDescription = if (isBookmarked) stringResource(R.string.contentDescription_savedIcon) else stringResource(
                             R.string.contentDescription_saveIcon
                         )
                     )
@@ -225,7 +247,7 @@ private fun PreviewDetailSuccess() {
                     genres = listOf("drama", "romance"),
                     voteAverage = 3.5f,
                     posterPath = null,
-                    isSaved = true
+                    isBookmarked = true
                 )
             )
         }

@@ -176,9 +176,9 @@ fun MoviesSection(
                         rating = movie.voteAverage,
                         imageUrl = movie.posterPath,
                         genres = null,
-                        isSaved = movie.isSaved,
+                        isBookmarked = movie.isBookmarked,
                         portrait = true,
-                        onSave = {},
+                        onBookmark = {},
                         onClick = { onGoToDetails(movie) },
                     )
                 }
