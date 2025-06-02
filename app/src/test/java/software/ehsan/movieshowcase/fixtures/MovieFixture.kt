@@ -1,5 +1,6 @@
 package software.ehsan.movieshowcase.fixtures
 
+import software.ehsan.movieshowcase.core.database.asEntity
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.core.network.model.MovieResponse
@@ -24,6 +25,17 @@ object MovieFixture {
             totalPages = 1,
             totalResults = size,
         )
+
+    fun moviesEntity(size: Int) = List(size) { i ->
+        Movie(
+            id = i,
+            title = "title $i",
+            overview = "overview $i",
+            posterPath = "poster path $i",
+            genres = null,
+            voteAverage = i.mod(5).toFloat()
+        ).asEntity()
+    }
 
     val emptyMovieResponse = MoviesResponse(1, emptyList(), 1, 0)
     val fiveMoviesResponse = MoviesResponse(1, moviesResponse(5), 1, 5)

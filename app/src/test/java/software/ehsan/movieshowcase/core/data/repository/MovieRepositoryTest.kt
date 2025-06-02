@@ -1,10 +1,12 @@
 package software.ehsan.movieshowcase.core.data.repository
 
+import app.cash.turbine.test
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.runs
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -12,6 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
 import software.ehsan.movieshowcase.core.cache.MovieCacheImpl
+import software.ehsan.movieshowcase.core.database.dao.MovieDao
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
@@ -33,6 +36,9 @@ class MovieRepositoryTest {
     @MockK
     lateinit var movieCacheImpl: MovieCacheImpl
 
+    @MockK
+    lateinit var movieDao: MovieDao
+
     private lateinit var moviesRepository: MovieRepository
 
     @Before
@@ -43,6 +49,7 @@ class MovieRepositoryTest {
             movieApiService = movieApiService,
             genreApiService = genreApiService,
             movieCache = movieCacheImpl,
+            movieDao = movieDao,
             dispatcherProvider = dispatcherProvider
         )
     }
@@ -126,6 +133,77 @@ class MovieRepositoryTest {
             MovieFixture.fiveMoviesResponse.results.first().asDomain(null),
             response.getOrThrow().results[0]
         )
+    }
+
+    @Test
+    fun getAllBookmarkedMovies_throwException_returnFailureResult() = runTest {
+        coEvery { movieDao.getAllMovies() } returns flow { throw Exception("") }
+        moviesRepository.getAllBookmarkedMovies().test {
+            val response = awaitItem()
+            assert(response.isFailure)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun getAllBookmarkedMovies_returnMovies_returnSuccessResult() = runTest {
+        coEvery { movieDao.getAllMovies() } returns flow { emit(MovieFixture.moviesEntity(5)) }
+        moviesRepository.getAllBookmarkedMovies().test {
+            val response = awaitItem()
+            assert(response.isSuccess)
+            assertEquals(5, response.getOrThrow().size)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun saveMovie_throwException_returnFailureResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.insertMovie(any()) } throws Exception("Database Error")
+        val response = moviesRepository.saveMovie(movie)
+        assert(response.isFailure)
+        assertEquals("Database Error", response.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun saveMovie_itemIsNotSaved_returnFailureResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.insertMovie(any()) } returns -1
+        val response = moviesRepository.saveMovie(movie)
+        assert(response.isFailure)
+    }
+
+    @Test
+    fun saveMovie_itemSaved_returnSuccessResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.insertMovie(any()) } returns 1
+        val response = moviesRepository.saveMovie(movie)
+        assert(response.isSuccess)
+    }
+
+    @Test
+    fun deleteMovie_throwException_returnFailureResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.delete(any()) } throws Exception("Database Error")
+        val response = moviesRepository.deleteMovie(movie)
+        assert(response.isFailure)
+        assertEquals("Database Error", response.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun deleteMovie_itemDeleted_returnFailureResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.delete(any()) } returns -1
+        val response = moviesRepository.deleteMovie(movie)
+        assert(response.isFailure)
+    }
+
+    @Test
+    fun deleteMovie_itemDeleted_returnSuccessResult() = runTest {
+        val movie = MovieFixture.movie(1).first()
+        coEvery { movieDao.delete(any()) } returns 1
+        val response = moviesRepository.deleteMovie(movie)
+        assert(response.isSuccess)
     }
 }
 

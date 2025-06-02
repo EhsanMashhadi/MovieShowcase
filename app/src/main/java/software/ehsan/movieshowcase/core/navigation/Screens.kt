@@ -12,4 +12,7 @@ sealed class Screens {
 
     @Serializable
     data object Latest : Screens()
+
+    @Serializable
+    data object Bookmarks : Screens()
 }

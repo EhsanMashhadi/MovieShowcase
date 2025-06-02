@@ -72,20 +72,23 @@ class LatestViewModel @Inject constructor(
         }
         viewModelScope.launch {
             val latestMovies = getLatestMoviesUseCase(genre = if (genre?.id == 0) null else genre)
-            if (latestMovies.isSuccess) {
-                val movies = latestMovies.getOrThrow()
-                _uiState.update {
-                    it.copy(
-                        moviesState = UiState.Success(movies),
-                        selectedGenre = genre
-                    )
+            latestMovies.collect {
+                it.onSuccess { movies ->
+                    _uiState.update {
+                        it.copy(
+                            moviesState = UiState.Success(movies),
+                            selectedGenre = genre
+                        )
+                    }
                 }
-            } else {
-                val message = latestMovies.exceptionOrNull()?.localizedMessage ?: "Unknown Error"
-                _uiState.update {
-                    it.copy(
-                        moviesState = UiState.Error(message)
-                    )
+                it.onFailure { exception ->
+                    _uiState.update {
+                        it.copy(
+                            moviesState = UiState.Error(
+                                exception.localizedMessage ?: "Unknown Error"
+                            )
+                        )
+                    }
                 }
             }
         }

@@ -4,14 +4,17 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.domain.GetLatestMoviesUseCase
-import software.ehsan.movieshowcase.domain.GetTopMoviesUseCase
+import software.ehsan.movieshowcase.domain.GetTopMovieUseCase
+import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
 import software.ehsan.movieshowcase.fixtures.MovieFixture
 import software.ehsan.movieshowcase.util.MainDispatcherRule
 
@@ -22,10 +25,13 @@ class DashboardViewModelTest {
     val rule = MainDispatcherRule()
 
     @MockK
-    lateinit var getTopMoviesUseCase: GetTopMoviesUseCase
+    lateinit var getTopMoviesUseCase: GetTopMovieUseCase
 
     @MockK
     lateinit var getLatestMoviesUseCase: GetLatestMoviesUseCase
+
+    @MockK
+    lateinit var toggleBookmarkUseCase: ToggleBookmarkUseCase
 
     @Before
     fun setup() {
@@ -34,7 +40,8 @@ class DashboardViewModelTest {
 
     @Test
     fun initiateViewModel_initiateViewModel_showIdleState() = runTest {
-        val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
+        val dashboardViewModel =
+            DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase, toggleBookmarkUseCase)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Idle)
     }
 
@@ -42,9 +49,14 @@ class DashboardViewModelTest {
     fun loadAllMovies_returnLatestAndTopMovies_showSuccessLatestAndTopMovies() = runTest {
         val latestMovie = MovieFixture.movies(1)
         val topMovies = MovieFixture.movies(5)
-        coEvery { getLatestMoviesUseCase.invoke() } returns Result.success(latestMovie)
-        coEvery { getTopMoviesUseCase.invoke() } returns Result.success(topMovies)
-        val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
+        coEvery { getLatestMoviesUseCase.invoke(any(), any()) } returns flowOf(
+            Result.success(
+                latestMovie
+            )
+        )
+        coEvery { getTopMoviesUseCase.invoke() } returns flowOf(Result.success(topMovies))
+        val dashboardViewModel =
+            DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase, toggleBookmarkUseCase)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Idle)
         dashboardViewModel.handleIntent(DashboardIntent.LoadAllMovies)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Loading)
@@ -58,9 +70,14 @@ class DashboardViewModelTest {
     @Test
     fun loadAllMovies_returnOnlyLatestMovie_showSuccessOnlyLatestMovie() = runTest {
         val latestMovie = MovieFixture.movies(1)
-        coEvery { getLatestMoviesUseCase.invoke() } returns Result.success(latestMovie)
-        coEvery { getTopMoviesUseCase.invoke() } returns Result.failure(Exception("error"))
-        val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
+        coEvery { getLatestMoviesUseCase.invoke(any(), any()) } returns flowOf(
+            Result.success(
+                latestMovie
+            )
+        )
+        coEvery { getTopMoviesUseCase.invoke() } returns flowOf(Result.failure(Exception("error")))
+        val dashboardViewModel =
+            DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase, toggleBookmarkUseCase)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Idle)
         dashboardViewModel.handleIntent(DashboardIntent.LoadAllMovies)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Loading)
@@ -74,9 +91,14 @@ class DashboardViewModelTest {
     @Test
     fun loadAllMovies_returnOnlyTopMovies_showSuccessOnlyTopMovies() = runTest {
         val topMovies = MovieFixture.movies(5)
-        coEvery { getTopMoviesUseCase.invoke() } returns Result.success(topMovies)
-        coEvery { getLatestMoviesUseCase.invoke() } returns Result.failure(Exception("error"))
-        val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
+        coEvery { getTopMoviesUseCase.invoke() } returns flowOf(Result.success(topMovies))
+        coEvery { getLatestMoviesUseCase.invoke(any(), any()) } returns flowOf(
+            Result.failure(
+                Exception("error")
+            )
+        )
+        val dashboardViewModel =
+            DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase, toggleBookmarkUseCase)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Idle)
         dashboardViewModel.handleIntent(DashboardIntent.LoadAllMovies)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Loading)
@@ -89,9 +111,14 @@ class DashboardViewModelTest {
 
     @Test
     fun loadAllMovies_bothReturnError_showError() = runTest {
-        coEvery { getTopMoviesUseCase.invoke() } returns Result.failure(Exception("error"))
-        coEvery { getLatestMoviesUseCase.invoke() } returns Result.failure(Exception("error"))
-        val dashboardViewModel = DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase)
+        coEvery { getTopMoviesUseCase.invoke() } returns flowOf(Result.failure<Movies>(Exception("error")))
+        coEvery { getLatestMoviesUseCase.invoke(any(), any()) } returns flowOf(
+            Result.failure(
+                Exception("error")
+            )
+        )
+        val dashboardViewModel =
+            DashboardViewModel(getTopMoviesUseCase, getLatestMoviesUseCase, toggleBookmarkUseCase)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Idle)
         dashboardViewModel.handleIntent(DashboardIntent.LoadAllMovies)
         Assert.assertTrue(dashboardViewModel.uiState.value is DashboardState.Loading)

@@ -14,12 +14,13 @@ fun MoviesResponse.asDomain(genresName: List<String>?) = Movies(
     totalResults = this.totalResults,
     results = this.results.map { it.asDomain(genresName) })
 
-fun MovieResponse.asDomain(genresName: List<String>?) = Movie(
+fun MovieResponse.asDomain(genresName: List<String>?, isBookmarked: Boolean = false) = Movie(
     id = this.id,
     title = this.title,
     voteAverage = this.voteAverage,
     posterPath = getImageUrl(imageUrl = this.posterPath),
     overview = this.overview,
+    isBookmarked = isBookmarked,
     genres = genresName
 )
 

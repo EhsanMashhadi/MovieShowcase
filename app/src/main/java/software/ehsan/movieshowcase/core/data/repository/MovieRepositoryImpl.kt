@@ -1,9 +1,17 @@
 package software.ehsan.movieshowcase.core.data.repository
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okio.IOException
 import software.ehsan.movieshowcase.core.cache.MovieCache
 import software.ehsan.movieshowcase.core.cache.mapper.asEntity
+import software.ehsan.movieshowcase.core.database.DatabaseException.GenericApiException
+import software.ehsan.movieshowcase.core.database.asDomain
+import software.ehsan.movieshowcase.core.database.asEntity
+import software.ehsan.movieshowcase.core.database.dao.MovieDao
 import software.ehsan.movieshowcase.core.model.Genre
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
@@ -18,7 +26,8 @@ class MovieRepositoryImpl @Inject constructor(
     private val movieApiService: MovieApiService,
     private val genreApiService: GenreApiService,
     private val movieCache: MovieCache,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val movieDao: MovieDao
 ) : MovieRepository {
 
     override suspend fun getTopMovies(): Result<Movies> = withContext(dispatcherProvider.io) {
@@ -58,7 +67,6 @@ class MovieRepositoryImpl @Inject constructor(
             return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
         }
     }
-
 
     override suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies> =
         withContext(dispatcherProvider.io) {
@@ -129,6 +137,41 @@ class MovieRepositoryImpl @Inject constructor(
                 return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
             }
         }
+
+    override suspend fun saveMovie(movie: Movie) = withContext(dispatcherProvider.io) {
+        try {
+            val rowId = movieDao.insertMovie(movie.asEntity())
+            if (rowId > 0) {
+                return@withContext Result.success(Unit)
+            }
+            return@withContext Result.failure(Exception("Failed to save movie"))
+        } catch (exception: Exception) {
+            return@withContext Result.failure(GenericApiException(exception.message))
+        }
+    }
+
+    override suspend fun deleteMovie(movie: Movie) = withContext(dispatcherProvider.io) {
+        try {
+            val rowId = movieDao.delete(movie.asEntity())
+            if (rowId > 0) {
+                return@withContext Result.success(Unit)
+            }
+            return@withContext Result.failure(Exception("Failed to delete movie"))
+        } catch (exception: Exception) {
+            return@withContext Result.failure(GenericApiException(exception.message))
+        }
+    }
+
+    override fun getAllBookmarkedMovies(): Flow<Result<List<Movie>>> {
+        return movieDao.getAllMovies()
+            .map { moviesEntity ->
+                Result.success(moviesEntity.map { movieEntity ->
+                    movieEntity.asDomain()
+                })
+            }
+            .catch { emit(Result.failure(it)) }
+            .flowOn(dispatcherProvider.io)
+    }
 
     private suspend fun getGenreMapping(): Map<Int, String> {
         val genresResponse = genreApiService.getMoviesGenreIds()
