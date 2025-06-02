@@ -9,7 +9,7 @@ class ToggleBookmarkUseCase @Inject constructor(private val movieRepository: Mov
         return if (movie.isBookmarked) {
             movieRepository.deleteMovie(movie)
         } else {
-            movieRepository.saveMovie(movie)
+            movieRepository.insertMovie(movie)
         }
     }
 }

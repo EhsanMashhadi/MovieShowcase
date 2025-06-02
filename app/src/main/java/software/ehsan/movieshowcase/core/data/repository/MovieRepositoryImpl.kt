@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import okio.IOException
 import software.ehsan.movieshowcase.core.cache.MovieCache
 import software.ehsan.movieshowcase.core.cache.mapper.asEntity
-import software.ehsan.movieshowcase.core.database.DatabaseException.GenericApiException
+import software.ehsan.movieshowcase.core.database.DatabaseException.GenericDatabaseException
 import software.ehsan.movieshowcase.core.database.asDomain
 import software.ehsan.movieshowcase.core.database.asEntity
 import software.ehsan.movieshowcase.core.database.dao.MovieDao
@@ -138,15 +138,15 @@ class MovieRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun saveMovie(movie: Movie) = withContext(dispatcherProvider.io) {
+    override suspend fun insertMovie(movie: Movie) = withContext(dispatcherProvider.io) {
         try {
             val rowId = movieDao.insertMovie(movie.asEntity())
             if (rowId > 0) {
                 return@withContext Result.success(Unit)
             }
-            return@withContext Result.failure(Exception("Failed to save movie"))
+            return@withContext Result.failure(GenericDatabaseException("Failed to save movie"))
         } catch (exception: Exception) {
-            return@withContext Result.failure(GenericApiException(exception.message))
+            return@withContext Result.failure(GenericDatabaseException(exception.message))
         }
     }
 
@@ -156,9 +156,9 @@ class MovieRepositoryImpl @Inject constructor(
             if (rowId > 0) {
                 return@withContext Result.success(Unit)
             }
-            return@withContext Result.failure(Exception("Failed to delete movie"))
+            return@withContext Result.failure(GenericDatabaseException("Failed to delete movie"))
         } catch (exception: Exception) {
-            return@withContext Result.failure(GenericApiException(exception.message))
+            return@withContext Result.failure(GenericDatabaseException(exception.message))
         }
     }
 

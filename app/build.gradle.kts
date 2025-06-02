@@ -105,7 +105,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
-    testImplementation("app.cash.turbine:turbine:1.2.0")
+    testImplementation(libs.turbine)
 
 
     androidTestImplementation(libs.androidx.junit)

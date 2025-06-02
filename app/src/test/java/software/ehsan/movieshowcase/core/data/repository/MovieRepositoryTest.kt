@@ -160,7 +160,7 @@ class MovieRepositoryTest {
     fun saveMovie_throwException_returnFailureResult() = runTest {
         val movie = MovieFixture.movie(1).first()
         coEvery { movieDao.insertMovie(any()) } throws Exception("Database Error")
-        val response = moviesRepository.saveMovie(movie)
+        val response = moviesRepository.insertMovie(movie)
         assert(response.isFailure)
         assertEquals("Database Error", response.exceptionOrNull()?.message)
     }
@@ -169,7 +169,7 @@ class MovieRepositoryTest {
     fun saveMovie_itemIsNotSaved_returnFailureResult() = runTest {
         val movie = MovieFixture.movie(1).first()
         coEvery { movieDao.insertMovie(any()) } returns -1
-        val response = moviesRepository.saveMovie(movie)
+        val response = moviesRepository.insertMovie(movie)
         assert(response.isFailure)
     }
 
@@ -177,7 +177,7 @@ class MovieRepositoryTest {
     fun saveMovie_itemSaved_returnSuccessResult() = runTest {
         val movie = MovieFixture.movie(1).first()
         coEvery { movieDao.insertMovie(any()) } returns 1
-        val response = moviesRepository.saveMovie(movie)
+        val response = moviesRepository.insertMovie(movie)
         assert(response.isSuccess)
     }
 

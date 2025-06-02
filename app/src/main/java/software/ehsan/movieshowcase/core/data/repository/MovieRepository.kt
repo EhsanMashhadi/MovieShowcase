@@ -9,7 +9,7 @@ interface MovieRepository {
     suspend fun getTopMovies(): Result<Movies>
     suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies>
     suspend fun getMovieDetails(movieId: Int): Result<Movie>
-    suspend fun saveMovie(movie: Movie): Result<Unit>
+    suspend fun insertMovie(movie: Movie): Result<Unit>
     suspend fun deleteMovie(movie: Movie): Result<Unit>
     fun getAllBookmarkedMovies(): Flow<Result<List<Movie>>>
 }

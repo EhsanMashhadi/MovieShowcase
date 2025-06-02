@@ -32,9 +32,11 @@ class BookmarkViewModel @Inject constructor(
                 _uiState.update { BookmarkState.Loading }
                 viewModelScope.launch {
                     getBookmarkedMoviesUseCase().collect {
-                        it.onFailure {
+                        it.onFailure { error ->
                             _uiState.update {
-                                BookmarkState.Error("")
+                                BookmarkState.Error(
+                                    error.message ?: "An error occurred while loading bookmarks"
+                                )
                             }
                         }
                         it.onSuccess { bookmarkedMovies ->
@@ -49,6 +51,13 @@ class BookmarkViewModel @Inject constructor(
             is BookmarkIntent.BookmarkMovie -> {
                 viewModelScope.launch {
                     toggleBookmarkUseCase(intent.movie)
+                        .onFailure { error ->
+                            _uiState.update {
+                                BookmarkState.Error(
+                                    error.message ?: "An error occurred while toggling bookmark"
+                                )
+                            }
+                        }
                 }
             }
         }

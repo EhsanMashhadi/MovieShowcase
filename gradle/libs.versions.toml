@@ -16,6 +16,7 @@ coilCompose = "3.2.0"
 room = "2.7.1"
 kotlinxCoroutinesTest = "1.10.2"
 robolectric = "4.14.1"
+turbine = "1.2.0"
 uiTestJunit4 = "1.8.2"
 mockk = "1.14.2"
 junit = "4.13.2"
@@ -54,6 +55,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestJunit4" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
