@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmarks
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -29,6 +30,7 @@ import software.ehsan.movieshowcase.feature.bookmark.BookmarkScreen
 import software.ehsan.movieshowcase.feature.dashboard.DashboardScreen
 import software.ehsan.movieshowcase.feature.detail.DetailScreen
 import software.ehsan.movieshowcase.feature.latest.LatestScreen
+import software.ehsan.movieshowcase.feature.search.SearchScreen
 
 @Composable
 fun AppNavHost(
@@ -67,6 +69,10 @@ fun AppNavHost(
                 )
             })
         }
+
+        composable<Screens.Search> {
+            SearchScreen()
+        }
     }
 }
 
@@ -87,6 +93,11 @@ val topLevelRoutes = listOf(
         icon = Icons.Default.Home,
         label = R.string.all_dashboard,
         destination = Screens.Dashboard
+    ),
+    TopLevelRoute(
+        icon = Icons.Default.Search,
+        label = R.string.all_search,
+        destination = Screens.Search
     ),
     TopLevelRoute(
         icon = Icons.Default.Bookmarks,
