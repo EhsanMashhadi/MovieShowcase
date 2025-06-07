@@ -196,6 +196,38 @@ class MovieRepositoryTest {
         val response = moviesRepository.deleteMovie(movie)
         assert(response.isSuccess)
     }
+
+    @Test
+    fun searchMovie_returnMovies_returnSuccessResult() = runTest {
+        val query = "test"
+        coEvery { movieApiService.search(query) } returns Response.success(MovieFixture.fiveMoviesResponse)
+        coEvery { genreApiService.getMoviesGenreIds() } returns Response.success(GenreFixture.genres)
+        val response = moviesRepository.search(query)
+        assert(response.isSuccess)
+        assertEquals(
+            MovieFixture.fiveMoviesResponse.results.first().asDomain(null),
+            response.getOrThrow().results[0]
+        )
+    }
+
+    @Test
+    fun searchMovie_returnEmptyMovies_returnSuccessResult() = runTest {
+        val query = "test"
+        coEvery { movieApiService.search(query) } returns Response.success(MovieFixture.emptyMovieResponse)
+        coEvery { genreApiService.getMoviesGenreIds() } returns Response.success(GenreFixture.genres)
+        val response = moviesRepository.search(query)
+        assert(response.isSuccess)
+        assertEquals(0, response.getOrThrow().results.size)
+    }
+
+    @Test
+    fun searchMovie_returnError_returnFailureResult() = runTest {
+        val query = "test"
+        coEvery { movieApiService.search(query) } throws Exception("search error")
+        val response = moviesRepository.search(query)
+        assert(response.isFailure)
+        assertEquals("search error", response.exceptionOrNull()?.message)
+    }
 }
 
 const val ERROR_BODY_CONTENT = "Error body content"

@@ -71,7 +71,11 @@ fun AppNavHost(
         }
 
         composable<Screens.Search> {
-            SearchScreen()
+            SearchScreen(onGoToDetails = {
+                navController.navigateSafe(
+                    route = Screens.MovieDetails(it.id)
+                )
+            })
         }
     }
 }

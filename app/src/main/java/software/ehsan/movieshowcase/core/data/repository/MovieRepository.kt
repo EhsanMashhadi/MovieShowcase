@@ -12,4 +12,5 @@ interface MovieRepository {
     suspend fun insertMovie(movie: Movie): Result<Unit>
     suspend fun deleteMovie(movie: Movie): Result<Unit>
     fun getAllBookmarkedMovies(): Flow<Result<List<Movie>>>
+    suspend fun search(query: String): Result<Movies>
 }

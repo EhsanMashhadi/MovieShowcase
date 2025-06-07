@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okio.IOException
 import software.ehsan.movieshowcase.core.database.DatabaseException.GenericDatabaseException
-import software.ehsan.movieshowcase.core.database.asDomain
 import software.ehsan.movieshowcase.core.database.asEntity
 import software.ehsan.movieshowcase.core.database.dao.MovieDao
 import software.ehsan.movieshowcase.core.model.Genre
@@ -163,6 +162,37 @@ class MovieRepositoryImpl @Inject constructor(
             .catch { emit(Result.failure(it)) }
             .flowOn(dispatcherProvider.io)
     }
+
+    override suspend fun search(query: String): Result<Movies> =
+        withContext(dispatcherProvider.io) {
+            try {
+                val searchResponse = movieApiService.search(query)
+                if (!searchResponse.isSuccessful) {
+                    val errorBody =
+                        searchResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
+                    return@withContext Result.failure(Exception(errorBody))
+                }
+                val moviesResponse = searchResponse.body() ?: return@withContext Result.failure(
+                    ApiException.EmptyBodyException("Received successful status ${searchResponse.code()} but response body was null")
+                )
+                val genresMapping = getGenreMapping()
+                val moviesList = moviesResponse.results.map { topMovie ->
+                    val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
+                    val movieDomain = topMovie.asDomain(genreNames)
+                    movieDomain
+                }
+                return@withContext Result.success(
+                    Movies(
+                        moviesResponse.page,
+                        moviesList,
+                        moviesResponse.totalPages,
+                        moviesResponse.totalResults
+                    )
+                )
+            } catch (exception: Exception) {
+                return@withContext Result.failure(exception)
+            }
+        }
 
     private suspend fun getGenreMapping(): Map<Int, String> {
         val genresResponse = genreApiService.getMoviesGenreIds()
