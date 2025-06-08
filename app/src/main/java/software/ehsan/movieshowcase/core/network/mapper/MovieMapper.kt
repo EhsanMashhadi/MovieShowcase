@@ -1,6 +1,6 @@
 package software.ehsan.movieshowcase.core.network.mapper
 
-import software.ehsan.movieshowcase.core.cache.MovieEntity
+import software.ehsan.movieshowcase.core.database.model.MovieEntity
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.core.network.model.MovieResponse
@@ -30,5 +30,5 @@ fun MovieEntity.asDomain() = Movie(
     voteAverage = this.voteAverage,
     posterPath = getImageUrl(imageUrl = this.posterPath),
     overview = this.overview,
-    genres = genres
+    genres = null
 )

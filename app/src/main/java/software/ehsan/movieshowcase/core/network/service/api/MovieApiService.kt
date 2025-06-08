@@ -20,4 +20,7 @@ interface MovieApiService {
 
     @GET("movie/{movieId}")
     suspend fun getMovieDetails(@Path("movieId") movieId: Int): Response<MovieResponse>
+
+    @GET("search/movie")
+    suspend fun search(@Query("query") query: String): Response<MoviesResponse>
 }

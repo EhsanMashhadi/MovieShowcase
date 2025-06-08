@@ -15,4 +15,7 @@ sealed class Screens {
 
     @Serializable
     data object Bookmarks : Screens()
+
+    @Serializable
+    data object Search : Screens()
 }

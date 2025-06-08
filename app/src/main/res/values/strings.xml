@@ -13,8 +13,12 @@
     <string name="dashboard_topFiveTitle">Top Five</string>
     <string name="latestScreen_appBarTitle">Discover</string>
     <string name="bookmarkScreen_appBarTitle">Bookmarks</string>
+    <string name="searchScreen_appBarTitle">Search</string>
 
     <string name="bookmark_noBookmarkAvailable">You have not bookmarked any movie yet! Start bookmarking!</string>
+    <string name="searchScreen_searchbarPlaceholder">Search</string>
+    <string name="searchScreen_noResults">No results found, try another keyword!</string>
+    <string name="searchScreen_idleSearch">Start searching for a keyword!</string>
 
 
     <string name="contentDescription_unSave">Remove from saved</string>
