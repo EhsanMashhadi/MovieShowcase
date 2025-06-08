@@ -37,7 +37,7 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Upload Debug APK to Firebase App Distribution
-        uses: FirebaseExtended/action-android-app-distribution@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ env.FIREBASE_APP_ID_DEBUG }}
           token: ${{ env.FIREBASE_TOKEN }}
