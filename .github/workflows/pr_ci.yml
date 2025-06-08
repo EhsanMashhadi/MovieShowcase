@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  GOOGLE_SERVICES_JSON_DESTINATION: app/google-services.json
+
 jobs:
   build:
     name: Build Debug APK
@@ -23,6 +26,11 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Decode Google Services JSON
+        run: echo "${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ${{ env.GOOGLE_SERVICES_JSON_DESTINATION }}
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}
 
       - name: Build Debug APK
         run: ./gradlew clean assembleDebug --no-daemon
@@ -45,6 +53,11 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Decode Google Services JSON
+        run: echo "${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ${{ env.GOOGLE_SERVICES_JSON_DESTINATION }}
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}
 
       - name: Run Unit Tests
         run: ./gradlew clean testDebugUnitTest --no-daemon
