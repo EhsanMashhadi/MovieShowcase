@@ -3,7 +3,7 @@ name: Nightly Debug Build & Distribution
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 20 * * *'
+    - cron: '0 0 * * *'
 
 env:
   FIREBASE_APP_ID_DEBUG: ${{ secrets.FIREBASE_APP_ID_DEBUG }}
@@ -14,6 +14,8 @@ env:
 jobs:
   build_and_deploy_debug:
     runs-on: ubuntu-latest
+    env:
+      AUTHORIZATION_TOKEN: ${{ secrets.AUTHORIZATION_TOKEN }}
 
     steps:
       - name: Checkout Code

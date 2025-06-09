@@ -14,14 +14,6 @@ android {
     namespace = "software.ehsan.movieshowcase"
     compileSdk = 35
 
-    val localProperties = Properties()
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.inputStream().use { inputStream ->
-            localProperties.load(inputStream)
-        }
-    }
-
     buildFeatures {
         buildConfig = true
     }
@@ -33,17 +25,8 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField(
-            "String",
-            "AUTHORIZATION_TOKEN",
-            "\"${
-                localProperties.getProperty(
-                    "authorizationToken",
-                    ""
-                )
-            }\""
-        )
-
+        val apiAuthToken = getApiAuthToken()
+        buildConfigField("String", "AUTHORIZATION_TOKEN", "\"${apiAuthToken}\"")
     }
 
     buildTypes {
@@ -116,4 +99,26 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.ui.test.junit4)
 
+}
+
+fun getApiAuthToken(): String {
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { inputStream ->
+            localProperties.load(inputStream)
+        }
+        val tokenFromLocal = localProperties.getProperty("authorizationToken")
+        if (!tokenFromLocal.isNullOrEmpty()) {
+            return tokenFromLocal
+        }
+    }
+
+    val tokenFromEnv = System.getenv("AUTHORIZATION_TOKEN")
+    if (!tokenFromEnv.isNullOrEmpty()) {
+        return tokenFromEnv
+    }
+
+    throw IllegalStateException("Authorization token not found. Please set 'authorizationToken' in local.properties or as an environment variable 'AUTHORIZATION_TOKEN'.")
 }
