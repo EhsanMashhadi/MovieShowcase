@@ -81,6 +81,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.androidx.datastore.preferences)
 
     debugImplementation(libs.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)

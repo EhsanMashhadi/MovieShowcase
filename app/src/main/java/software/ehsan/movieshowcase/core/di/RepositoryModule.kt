@@ -8,6 +8,8 @@ import software.ehsan.movieshowcase.core.data.repository.GenreRepositoryImpl
 import software.ehsan.movieshowcase.core.data.repository.GenresRepository
 import software.ehsan.movieshowcase.core.data.repository.MovieRepository
 import software.ehsan.movieshowcase.core.data.repository.MovieRepositoryImpl
+import software.ehsan.movieshowcase.core.data.repository.UserSettingRepository
+import software.ehsan.movieshowcase.core.data.repository.UserSettingRepositoryImpl
 import javax.inject.Singleton
 
 @Module
@@ -21,4 +23,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindGenreRepository(genreRepositoryImpl: GenreRepositoryImpl): GenresRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserSettingRepository(userSettingRepositoryImpl: UserSettingRepositoryImpl): UserSettingRepository
 }
