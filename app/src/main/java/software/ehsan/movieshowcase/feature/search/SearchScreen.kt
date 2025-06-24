@@ -1,5 +1,7 @@
 package software.ehsan.movieshowcase.feature.search
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,29 +11,35 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import software.ehsan.movieshowcase.R
 import software.ehsan.movieshowcase.core.designsystem.component.AppTopAppBar
 import software.ehsan.movieshowcase.core.designsystem.component.CenteredLoading
+import software.ehsan.movieshowcase.core.designsystem.component.InlineError
 import software.ehsan.movieshowcase.core.designsystem.component.MovieDetailsCard
 import software.ehsan.movieshowcase.core.designsystem.component.SearchBar
 import software.ehsan.movieshowcase.core.designsystem.theme.spacing
 import software.ehsan.movieshowcase.core.model.Movie
-import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.feature.search.SearchViewModel.SearchIntent
 import software.ehsan.movieshowcase.feature.search.SearchViewModel.SearchUiState
 
@@ -43,7 +51,21 @@ fun SearchScreen(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SearchViewModel.SearchEvent.ShowToast -> {
+                    Toast.makeText(
+                        context,
+                        context.getString(event.messageResId),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
     Scaffold(topBar = {
         AppTopAppBar(
             title = buildAnnotatedString {
@@ -68,14 +90,9 @@ fun SearchScreen(
                     SearchIntent.BookmarkMovie(it)
                 )
             },
-            onQueryChange = {
-                viewModel.handleIntent(
-                    SearchIntent.UpdateSearchQuery(it)
-                )
-            },
             onSearch = {
                 viewModel.handleIntent(
-                    SearchIntent.Search
+                    SearchIntent.Search(it)
                 )
             }
         )
@@ -86,11 +103,10 @@ fun SearchScreen(
 fun SearchContent(
     searchUiState: SearchUiState,
     searchQuery: String,
-    onQueryChange: (String) -> Unit,
+    onSearch: (String) -> Unit,
     paddingValues: PaddingValues,
     onGoToDetails: (Movie) -> Unit,
-    onBookmark: (Movie) -> Unit,
-    onSearch: (String) -> Unit
+    onBookmark: (Movie) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -100,12 +116,10 @@ fun SearchContent(
     ) {
         SearchBar(
             searchQuery,
-            onQueryChange = { onQueryChange(it) },
-            onSearch = {
-                onSearch(it)
-            },
-            onClear = { onQueryChange("") },
-            placeholder = stringResource(R.string.searchScreen_searchbarPlaceholder)
+            onQueryChange = { onSearch(it) },
+            onClear = { onSearch("") },
+            placeholder = stringResource(R.string.searchScreen_searchbarPlaceholder),
+            onSearch = {}
         )
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.m))
         when (searchUiState) {
@@ -119,7 +133,36 @@ fun SearchContent(
             }
 
             is SearchUiState.Success -> {
-                SearchSuccess(searchUiState.movies, onGoToDetails, onBookmark)
+                val movies = searchUiState.movies.collectAsLazyPagingItems()
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    movies.apply {
+                        when {
+                            loadState.refresh is LoadState.Loading -> {
+                                CenteredLoading()
+                            }
+
+                            loadState.refresh is LoadState.Error -> {
+                                Text(stringResource(R.string.all_error))
+                            }
+
+                            loadState.refresh is LoadState.NotLoading && movies.itemCount == 0 -> {
+                                Text(stringResource(R.string.searchScreen_noResults))
+                            }
+
+                            else -> {
+                                SearchSuccess(
+                                    totalResults = searchUiState.totalResult,
+                                    movies = movies,
+                                    onGoToDetails = onGoToDetails,
+                                    onBookmark = onBookmark
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             is SearchUiState.Loading -> {
@@ -135,25 +178,25 @@ fun SearchContent(
 
 @Composable
 fun SearchSuccess(
-    movies: Movies,
+    totalResults: Int,
+    movies: LazyPagingItems<Movie>,
     onGoToDetails: (Movie) -> Unit,
     onBookmark: (Movie) -> Unit
 ) {
-    if (movies.totalResults == 0) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(stringResource(R.string.searchScreen_noResults))
+    val listState = rememberLazyListState()
+    LazyColumn(
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.l)
+    ) {
+        item {
+            Text("${stringResource(R.string.searchScreen_totalSearchResultCount)} $totalResults")
         }
-    } else {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.l)
-        ) {
-            item {
-                Text("Search results ${movies.totalResults}")
-            }
-            items(movies.results, key = { movie -> movie.id }) { movie ->
+        items(
+            count = movies.itemCount,
+            key = movies.itemKey { it.id }
+        ) { index ->
+            val movie = movies[index]
+            movie?.let {
                 MovieDetailsCard(
                     title = movie.title,
                     rating = movie.voteAverage,
@@ -167,7 +210,24 @@ fun SearchSuccess(
                 )
             }
         }
+        movies.apply {
+            Log.d("Loading state", loadState.toString())
+            when {
+                loadState.append is LoadState.Loading -> {
+                    item { CenteredLoading(modifier = Modifier) }
+                }
+
+                loadState.append is LoadState.Error -> {
+                    item {
+                        InlineError(
+                            error = stringResource(R.string.all_error),
+                            onRetry = { retry() })
+                    }
+                }
+            }
+        }
     }
+
 
 }
 
