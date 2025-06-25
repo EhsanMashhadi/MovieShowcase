@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import software.ehsan.movieshowcase.R
@@ -52,7 +54,9 @@ fun LatestScreen(
     onGoToDetails: (movieId: Movie) -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(topBar = { TopBar(onBack) }
+    Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+        topBar = { TopBar(onBack) }
     ) { paddingValues ->
         LatestContent(uiState.value, paddingValues, onGoToDetails, onFilterByGenre = {
             viewModel.handleIntent(LatestIntent.LoadLatest(selectedGenre = it))

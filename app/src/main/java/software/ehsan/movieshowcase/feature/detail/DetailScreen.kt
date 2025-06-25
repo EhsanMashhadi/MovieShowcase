@@ -1,11 +1,12 @@
 package software.ehsan.movieshowcase.feature.detail
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,7 +58,6 @@ fun DetailScreen(
     onBack: () -> Unit,
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-
     val showSaveButton = uiState.value is DetailState.Success
     val isBookmarked = (uiState.value as? DetailState.Success)?.movie?.isBookmarked == true
     val context = LocalContext.current
@@ -76,9 +76,11 @@ fun DetailScreen(
         }
     }
 
-    Scaffold { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            DetailContent(uiState.value)
+    Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
+    ) { paddingValues ->
+        Box {
+            DetailContent(uiState.value, paddingValues)
             if (uiState.value is DetailState.Success) {
                 DetailTopBar(
                     onBack = onBack,
@@ -87,7 +89,6 @@ fun DetailScreen(
                     onBookmark = { viewModel.handleIntent(DetailIntent.ToggleBookmark((uiState.value as DetailState.Success).movie)) }
                 )
             }
-
         }
 
     }
@@ -98,23 +99,29 @@ fun DetailScreen(
 
 @Composable
 fun DetailContent(
-    detailState: DetailState
+    detailState: DetailState,
+    paddingValues: PaddingValues
 ) {
-    when (detailState) {
-        is DetailState.Idle -> {}
-        is DetailState.Loading -> {
-            CenteredLoading()
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        when (detailState) {
+            is DetailState.Idle -> {}
+            is DetailState.Loading -> {
+                CenteredLoading()
+            }
 
-        is DetailState.Success -> {
-            DetailSuccessContent(movie = detailState.movie)
-        }
+            is DetailState.Success -> {
+                DetailSuccessContent(movie = detailState.movie)
+            }
 
-        is DetailState.Error -> {
-            DetailErrorContent()
+            is DetailState.Error -> {
+                DetailErrorContent()
+            }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,7 +129,7 @@ fun DetailContent(
 private fun DetailSuccessContent(movie: Movie) {
     val scrollableState = rememberScrollState()
     Column(modifier = Modifier.verticalScroll(scrollableState)) {
-        Box {
+        if (movie.posterPath != null) {
             AsyncImage(
                 model = movie.posterPath,
                 contentDescription = stringResource(
@@ -132,11 +139,12 @@ private fun DetailSuccessContent(movie: Movie) {
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.Fit
             )
+
+        } else {
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(84.dp)
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .height(MaterialTheme.spacing.topAppBarHeight)
             )
         }
         Column(
@@ -145,7 +153,7 @@ private fun DetailSuccessContent(movie: Movie) {
                 .wrapContentHeight()
                 .padding(horizontal = MaterialTheme.spacing.l)
         ) {
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xxl))
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.m))
             Text(movie.title, style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.m))
             DisplayRating(rating = movie.voteAverage)

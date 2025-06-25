@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -96,6 +97,7 @@ private fun DashboardScaffold(
     } else buildAnnotatedString { append(stringResource(R.string.app_name)) }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             DashboardTopBar(text = text, isDarkTheme = isDarkTheme, toggleTheme = toggleTheme)
         }) { innerPadding -> content(innerPadding) }
