@@ -8,7 +8,8 @@
     <string name="all_dot">.</string>
     <string name="all_allGenres">All</string>
     <string name="all_bookmarks">Bookmarks</string>
-
+    <string name="all_failed_bookmark">Failed to bookmark the movie, please try again!</string>
+    <string name="all_retry">Retry</string>
 
     <string name="dashboard_topFiveTitle">Top Five</string>
     <string name="latestScreen_appBarTitle">Discover</string>
@@ -19,6 +20,7 @@
     <string name="searchScreen_searchbarPlaceholder">Search</string>
     <string name="searchScreen_noResults">No results found, try another keyword!</string>
     <string name="searchScreen_idleSearch">Start searching for a keyword!</string>
+    <string name="searchScreen_totalSearchResultCount">Search results:</string>
 
 
     <string name="contentDescription_unSave">Remove from saved</string>

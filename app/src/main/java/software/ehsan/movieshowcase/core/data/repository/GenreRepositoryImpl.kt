@@ -11,7 +11,10 @@ import javax.inject.Inject
 class GenreRepositoryImpl @Inject constructor(
     private val genreApiService: GenreApiService,
     private val dispatcherProvider: DispatcherProvider
-) : GenresRepository {
+) : GenreRepository {
+
+    private var cachedGenresMapping: Map<Int, String>? = null
+
     override suspend fun getAllGenres(): Result<List<Genre>> = withContext(dispatcherProvider.io) {
         try {
             val genreResponse = genreApiService.getMoviesGenreIds()
@@ -30,6 +33,26 @@ class GenreRepositoryImpl @Inject constructor(
 
         } catch (exception: Exception) {
             return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
+        }
+    }
+
+    override suspend fun getGenresMapping(): Map<Int, String> = withContext(dispatcherProvider.io) {
+        cachedGenresMapping?.let {
+            return@withContext it
+        }
+        try {
+            val genresResponse = genreApiService.getMoviesGenreIds()
+            if (genresResponse.isSuccessful) {
+                val genresMap = genresResponse.body()?.let { genreResponse ->
+                    genreResponse.genres.associateBy({ it.id }, { it.name })
+                } ?: emptyMap()
+                cachedGenresMapping = genresMap
+                return@withContext genresMap
+            } else {
+                return@withContext emptyMap()
+            }
+        } catch (_: Exception) {
+            return@withContext emptyMap()
         }
     }
 }

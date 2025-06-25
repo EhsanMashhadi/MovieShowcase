@@ -39,7 +39,7 @@ class DetailViewModel @Inject constructor(
                     val result = toggleBookmarkUseCase(intent.movie)
                     result.onFailure {
                         _uiEvent.emit(
-                            DetailEvent.ShowToast(messageResId = R.string.app_name)
+                            DetailEvent.ShowToast(messageResId = R.string.all_failed_bookmark)
                         )
                     }
                 }

@@ -4,7 +4,7 @@ data class Movies(
     val page: Int,
     val results: List<Movie>,
     val totalPages: Int,
-    val totalResults: Int
+    val totalResultsCount: Int
 )
 
 data class Movie(

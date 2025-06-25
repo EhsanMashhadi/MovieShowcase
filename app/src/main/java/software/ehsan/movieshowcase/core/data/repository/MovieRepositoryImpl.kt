@@ -1,6 +1,16 @@
 package software.ehsan.movieshowcase.core.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -14,17 +24,21 @@ import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
-import software.ehsan.movieshowcase.core.network.service.api.GenreApiService
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 import software.ehsan.movieshowcase.core.util.DispatcherProvider
 import javax.inject.Inject
 
 class MovieRepositoryImpl @Inject constructor(
     private val movieApiService: MovieApiService,
-    private val genreApiService: GenreApiService,
+    private val genreRepository: GenreRepository,
     private val dispatcherProvider: DispatcherProvider,
     private val movieDao: MovieDao
 ) : MovieRepository {
+
+    private val _totalMoviesResultCount = MutableStateFlow<Int>(0)
+    override val totalMoviesResultCount: StateFlow<Int> = _totalMoviesResultCount.asStateFlow()
+
+    override val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override suspend fun getTopMovies(): Result<Movies> = withContext(dispatcherProvider.io) {
         try {
@@ -42,16 +56,11 @@ class MovieRepositoryImpl @Inject constructor(
             val moviesResponse = topMoviesResponse.body() ?: return@withContext Result.failure(
                 ApiException.EmptyBodyException("Received successful status ${topMoviesResponse.code()} but response body was null")
             )
-            val genresMapping = getGenreMapping()
-            val moviesList = moviesResponse.results.map { topMovie ->
-                val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                val movieDomain = topMovie.asDomain(genreNames)
-                movieDomain
-            }
+            val moviesList = moviesResponse.asDomain(genreRepository = genreRepository)
             return@withContext Result.success(
                 Movies(
                     moviesResponse.page,
-                    moviesList,
+                    moviesList.results,
                     moviesResponse.totalPages,
                     moviesResponse.totalResults
                 )
@@ -82,12 +91,7 @@ class MovieRepositoryImpl @Inject constructor(
                     latestMovieResponse.body() ?: return@withContext Result.failure(
                         ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
                     )
-                val genresMapping = getGenreMapping()
-                val moviesList = moviesResponse.results.map { topMovie ->
-                    val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                    val movieDomain = topMovie.asDomain(genreNames)
-                    movieDomain
-                }
+                val moviesList = moviesResponse.asDomain(genreRepository = genreRepository).results
                 return@withContext Result.success(
                     Movies(
                         moviesResponse.page,
@@ -119,7 +123,7 @@ class MovieRepositoryImpl @Inject constructor(
                 val movieDetail = moviesDetailsResponse.body() ?: return@withContext Result.failure(
                     ApiException.EmptyBodyException("Received successful status ${moviesDetailsResponse.code()} but response body was null")
                 )
-                val genresMapping = getGenreMapping()
+                val genresMapping = genreRepository.getGenresMapping()
                 val genresName = movieDetail.genres?.mapNotNull { genresMapping[it] }
                 val movie = movieDetail.asDomain(genresName)
                 return@withContext Result.success(movie)
@@ -163,43 +167,21 @@ class MovieRepositoryImpl @Inject constructor(
             .flowOn(dispatcherProvider.io)
     }
 
-    override suspend fun search(query: String): Result<Movies> =
-        withContext(dispatcherProvider.io) {
-            try {
-                val searchResponse = movieApiService.search(query)
-                if (!searchResponse.isSuccessful) {
-                    val errorBody =
-                        searchResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
-                    return@withContext Result.failure(Exception(errorBody))
-                }
-                val moviesResponse = searchResponse.body() ?: return@withContext Result.failure(
-                    ApiException.EmptyBodyException("Received successful status ${searchResponse.code()} but response body was null")
-                )
-                val genresMapping = getGenreMapping()
-                val moviesList = moviesResponse.results.map { topMovie ->
-                    val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                    val movieDomain = topMovie.asDomain(genreNames)
-                    movieDomain
-                }
-                return@withContext Result.success(
-                    Movies(
-                        moviesResponse.page,
-                        moviesList,
-                        moviesResponse.totalPages,
-                        moviesResponse.totalResults
+    override fun search(query: String): Flow<PagingData<Movie>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20
+            ),
+            pagingSourceFactory = {
+                val pagingSource =
+                    MoviesPagingSource(
+                        movieApiService,
+                        genreRepository,
+                        query,
+                        _totalMoviesResultCount
                     )
-                )
-            } catch (exception: Exception) {
-                return@withContext Result.failure(exception)
+                pagingSource
             }
-        }
-
-    private suspend fun getGenreMapping(): Map<Int, String> {
-        val genresResponse = genreApiService.getMoviesGenreIds()
-        return if (genresResponse.isSuccessful) {
-            genresResponse.body()?.let { genreResponse ->
-                genreResponse.genres.associateBy({ it.id }, { it.name })
-            } ?: emptyMap()
-        } else emptyMap()
+        ).flow.cachedIn(repositoryScope)
     }
 }

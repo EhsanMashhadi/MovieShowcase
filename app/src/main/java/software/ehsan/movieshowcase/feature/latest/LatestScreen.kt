@@ -105,7 +105,7 @@ fun LatestContent(
     ) {
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.m))
         val totalMoviesCount =
-            if (moviesState is UiState.Success) moviesState.data.totalResults else null
+            if (moviesState is UiState.Success) moviesState.data.totalResultsCount else null
         GenreSection(
             genresState,
             totalMoviesCount,
