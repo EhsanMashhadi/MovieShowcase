@@ -9,7 +9,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import software.ehsan.movieshowcase.R
 import software.ehsan.movieshowcase.core.designsystem.theme.MovieShowcaseTheme
 import software.ehsan.movieshowcase.core.designsystem.theme.spacing
 
@@ -29,7 +31,7 @@ fun InlineError(error: String, modifier: Modifier = Modifier, onRetry: (() -> Un
         )
         onRetry?.let {
             Text(
-                text = "Retry",
+                text = stringResource(id = R.string.all_retry),
                 modifier = Modifier.clickable { onRetry() },
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary

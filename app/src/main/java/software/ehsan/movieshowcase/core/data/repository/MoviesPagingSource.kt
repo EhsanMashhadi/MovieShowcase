@@ -2,17 +2,15 @@ package software.ehsan.movieshowcase.core.data.repository
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
-import software.ehsan.movieshowcase.core.network.service.api.GenreApiService
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 
 class MoviesPagingSource(
     private val moviesApiService: MovieApiService,
-    private val genreApiService: GenreApiService,
+    private val genresRepository: GenresRepository,
     private val query: String,
     private val totalItemCountFlow: MutableStateFlow<Int>
 ) : PagingSource<Int, Movie>() {
@@ -36,12 +34,8 @@ class MoviesPagingSource(
             if (currentPage == 1) {
                 totalItemCountFlow.value = moviesResponse.totalResults
             }
-            val genresMapping = getGenreMapping()
-            val moviesList = moviesResponse.results.map { topMovie ->
-                val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                val movieDomain = topMovie.asDomain(genreNames)
-                movieDomain
-            }
+
+            val moviesList = moviesResponse.asDomain(genreRepository = genresRepository).results
             return LoadResult.Page(
                 data = moviesList,
                 prevKey = if (currentPage == 1) null else currentPage - 1,
@@ -58,14 +52,5 @@ class MoviesPagingSource(
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
-    }
-
-    suspend fun getGenreMapping(): Map<Int, String> {
-        val genresResponse = genreApiService.getMoviesGenreIds()
-        return if (genresResponse.isSuccessful) {
-            genresResponse.body()?.let { genreResponse ->
-                genreResponse.genres.associateBy({ it.id }, { it.name })
-            } ?: emptyMap()
-        } else emptyMap()
     }
 }

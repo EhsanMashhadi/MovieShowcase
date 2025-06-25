@@ -9,7 +9,7 @@
     <string name="all_allGenres">All</string>
     <string name="all_bookmarks">Bookmarks</string>
     <string name="all_failed_bookmark">Failed to bookmark the movie, please try again!</string>
-
+    <string name="all_retry">Retry</string>
 
     <string name="dashboard_topFiveTitle">Top Five</string>
     <string name="latestScreen_appBarTitle">Discover</string>

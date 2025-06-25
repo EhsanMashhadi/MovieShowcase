@@ -4,7 +4,6 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -14,7 +13,6 @@ import software.ehsan.movieshowcase.core.model.Movie
 class GetMoviesWithBookmarkStatusUseCase @Inject constructor(movieRepository: MovieRepository) {
 
     private val bookmarkedMovieIdsFlow: Flow<Set<Int>> = movieRepository.getAllBookmarkedMovies()
-        .catch { emit(Result.failure(it)) }
         .map { result ->
             result.getOrNull()?.map { it.id }?.toSet() ?: emptySet()
         }

@@ -24,14 +24,13 @@ import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
-import software.ehsan.movieshowcase.core.network.service.api.GenreApiService
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 import software.ehsan.movieshowcase.core.util.DispatcherProvider
 import javax.inject.Inject
 
 class MovieRepositoryImpl @Inject constructor(
     private val movieApiService: MovieApiService,
-    private val genreApiService: GenreApiService,
+    private val genresRepository: GenresRepository,
     private val dispatcherProvider: DispatcherProvider,
     private val movieDao: MovieDao
 ) : MovieRepository {
@@ -57,16 +56,11 @@ class MovieRepositoryImpl @Inject constructor(
             val moviesResponse = topMoviesResponse.body() ?: return@withContext Result.failure(
                 ApiException.EmptyBodyException("Received successful status ${topMoviesResponse.code()} but response body was null")
             )
-            val genresMapping = getGenreMapping()
-            val moviesList = moviesResponse.results.map { topMovie ->
-                val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                val movieDomain = topMovie.asDomain(genreNames)
-                movieDomain
-            }
+            val moviesList = moviesResponse.asDomain(genreRepository = genresRepository)
             return@withContext Result.success(
                 Movies(
                     moviesResponse.page,
-                    moviesList,
+                    moviesList.results,
                     moviesResponse.totalPages,
                     moviesResponse.totalResults
                 )
@@ -97,12 +91,7 @@ class MovieRepositoryImpl @Inject constructor(
                     latestMovieResponse.body() ?: return@withContext Result.failure(
                         ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
                     )
-                val genresMapping = getGenreMapping()
-                val moviesList = moviesResponse.results.map { topMovie ->
-                    val genreNames = topMovie.genres?.mapNotNull { genresMapping[it] }
-                    val movieDomain = topMovie.asDomain(genreNames)
-                    movieDomain
-                }
+                val moviesList = moviesResponse.asDomain(genreRepository = genresRepository).results
                 return@withContext Result.success(
                     Movies(
                         moviesResponse.page,
@@ -134,7 +123,7 @@ class MovieRepositoryImpl @Inject constructor(
                 val movieDetail = moviesDetailsResponse.body() ?: return@withContext Result.failure(
                     ApiException.EmptyBodyException("Received successful status ${moviesDetailsResponse.code()} but response body was null")
                 )
-                val genresMapping = getGenreMapping()
+                val genresMapping = genresRepository.getGenreMapping()
                 val genresName = movieDetail.genres?.mapNotNull { genresMapping[it] }
                 val movie = movieDetail.asDomain(genresName)
                 return@withContext Result.success(movie)
@@ -187,21 +176,12 @@ class MovieRepositoryImpl @Inject constructor(
                 val pagingSource =
                     MoviesPagingSource(
                         movieApiService,
-                        genreApiService,
+                        genresRepository,
                         query,
                         _totalMoviesResultCount
                     )
                 pagingSource
             }
         ).flow.cachedIn(repositoryScope)
-    }
-
-    suspend fun getGenreMapping(): Map<Int, String> {
-        val genresResponse = genreApiService.getMoviesGenreIds()
-        return if (genresResponse.isSuccessful) {
-            genresResponse.body()?.let { genreResponse ->
-                genreResponse.genres.associateBy({ it.id }, { it.name })
-            } ?: emptyMap()
-        } else emptyMap()
     }
 }

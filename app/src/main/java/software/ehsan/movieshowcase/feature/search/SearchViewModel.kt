@@ -60,7 +60,7 @@ class SearchViewModel @Inject constructor(
                 searchMovieUseCase(query)
                     .map<PagedMovies, SearchUiState> { searchResult ->
                         SearchUiState.Success(
-                            movies = searchResult.movies.cachedIn(viewModelScope),
+                            movies = searchResult.movies,
                             totalResult = searchResult.totalResult
                         )
                     }

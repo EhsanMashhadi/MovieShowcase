@@ -1,7 +1,6 @@
 package software.ehsan.movieshowcase.domain
 
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -21,7 +20,7 @@ class SearchMovieUseCase @Inject constructor(
             return flowOf(PagedMovies(flowOf(PagingData.empty()), 0))
         }
         val pagedMoviesFlow: Flow<PagingData<Movie>> =
-            movieRepository.search(query).cachedIn(movieRepository.repositoryScope)
+            movieRepository.search(query)
         val pagedMoviesFlowWithBookmarkState: Flow<PagingData<Movie>> =
             getMoviesWithBookmarkStatusUseCase.perform(pagedMoviesFlow)
         val totalItemCountFlow: Flow<Int> = movieRepository.totalMoviesResultCount

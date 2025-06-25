@@ -4,4 +4,5 @@ import software.ehsan.movieshowcase.core.model.Genre
 
 interface GenresRepository {
     suspend fun getAllGenres(): Result<List<Genre>>
+    suspend fun getGenreMapping(): Map<Int, String>
 }

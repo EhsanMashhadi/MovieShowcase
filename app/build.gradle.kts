@@ -95,8 +95,7 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.robolectric)
     testImplementation(libs.turbine)
-    testImplementation("androidx.paging:paging-testing:3.3.0") // << Add this for unit tests
-
+    testImplementation(libs.androidx.paging.testing)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

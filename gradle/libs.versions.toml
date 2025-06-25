@@ -68,6 +68,7 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
 ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestJunit4" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+androidx-paging-testing = { module = "androidx.paging:paging-testing", version.ref = "paing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
