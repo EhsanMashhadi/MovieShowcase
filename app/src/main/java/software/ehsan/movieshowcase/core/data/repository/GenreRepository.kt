@@ -2,7 +2,7 @@ package software.ehsan.movieshowcase.core.data.repository
 
 import software.ehsan.movieshowcase.core.model.Genre
 
-interface GenresRepository {
+interface GenreRepository {
     suspend fun getAllGenres(): Result<List<Genre>>
-    suspend fun getGenreMapping(): Map<Int, String>
+    suspend fun getGenresMapping(): Map<Int, String>
 }

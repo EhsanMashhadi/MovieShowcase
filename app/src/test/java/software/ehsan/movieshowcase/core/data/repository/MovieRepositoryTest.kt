@@ -28,7 +28,7 @@ class MovieRepositoryTest {
     lateinit var movieApiService: MovieApiService
 
     @MockK
-    lateinit var genresRepository: GenresRepository
+    lateinit var genreRepository: GenreRepository
 
     @MockK
     lateinit var movieDao: MovieDao
@@ -41,7 +41,7 @@ class MovieRepositoryTest {
         val dispatcherProvider = TestDispatcherProvider()
         moviesRepository = MovieRepositoryImpl(
             movieApiService = movieApiService,
-            genresRepository = genresRepository,
+            genreRepository = genreRepository,
             movieDao = movieDao,
             dispatcherProvider = dispatcherProvider
         )
@@ -50,26 +50,26 @@ class MovieRepositoryTest {
     @Test
     fun getTopMovies_apiReturnEmpty_emptyTopMovies() = runTest {
         coEvery { movieApiService.getTopMovies() } returns Response.success(MovieFixture.emptyMovieResponse)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.getTopMovies()
         assert(response.isSuccess)
         assertEquals(1, response.getOrThrow().page)
         assertEquals(1, response.getOrThrow().totalPages)
-        assertEquals(0, response.getOrThrow().totalResults)
+        assertEquals(0, response.getOrThrow().totalResultsCount)
         assertEquals(emptyList<Movie>(), response.getOrThrow().results)
     }
 
     @Test
     fun getTopMovies_apiReturnFiveItems_topFiveItems() = runTest {
         coEvery { movieApiService.getTopMovies() } returns Response.success(MovieFixture.fiveMoviesResponse)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.getTopMovies()
         assert(response.isSuccess)
         assertEquals(1, response.getOrThrow().page)
         assertEquals(1, response.getOrThrow().totalPages)
-        assertEquals(5, response.getOrThrow().totalResults)
+        assertEquals(5, response.getOrThrow().totalResultsCount)
         assertEquals(
-            MovieFixture.fiveMoviesResponse.asDomain(genresRepository).results,
+            MovieFixture.fiveMoviesResponse.asDomain(genreRepository).results,
             response.getOrThrow().results
         )
     }
@@ -88,7 +88,7 @@ class MovieRepositoryTest {
     @Test
     fun getTopMovies_apiReturnEmptyContent_returnFailResult() = runTest {
         coEvery { movieApiService.getTopMovies() } returns Response.success(null)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.getTopMovies()
         assert(response.isFailure)
         assertEquals(null, response.getOrNull())
@@ -117,7 +117,7 @@ class MovieRepositoryTest {
                 genreId = any()
             )
         } returns Response.success(MovieFixture.fiveMoviesResponse)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.getLatestMovies(genre = null, releaseDateLte = null)
         assert(response.isSuccess)
         assertEquals(
@@ -207,11 +207,11 @@ class MovieRepositoryTest {
                 page = any()
             )
         } returns Response.success(returnMovies)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.search(query)
         val movies = response.asSnapshot()
         assertEquals(
-            returnMovies.asDomain(genresRepository).results,
+            returnMovies.asDomain(genreRepository).results,
             movies
         )
     }
@@ -225,7 +225,7 @@ class MovieRepositoryTest {
                 any()
             )
         } returns Response.success(MovieFixture.emptyMovieResponse)
-        coEvery { genresRepository.getGenreMapping() } returns emptyMap()
+        coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val movies = moviesRepository.search(query).asSnapshot()
         assertEquals(0, movies.size)
     }

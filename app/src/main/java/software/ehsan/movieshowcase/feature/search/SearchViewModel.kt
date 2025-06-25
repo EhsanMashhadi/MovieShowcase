@@ -1,11 +1,9 @@
 package software.ehsan.movieshowcase.feature.search
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
-import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -31,7 +29,6 @@ import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.PagedMovies
 import software.ehsan.movieshowcase.domain.SearchMovieUseCase
 import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
-import software.ehsan.movieshowcase.feature.detail.DetailEvent
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,8 +36,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val searchMovieUseCase: SearchMovieUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase
-) :
-    ViewModel() {
+) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
@@ -61,7 +57,7 @@ class SearchViewModel @Inject constructor(
                     .map<PagedMovies, SearchUiState> { searchResult ->
                         SearchUiState.Success(
                             movies = searchResult.movies,
-                            totalResult = searchResult.totalResult
+                            totalResult = searchResult.totalResultCount
                         )
                     }
                     .onStart { emit(SearchUiState.Loading) }

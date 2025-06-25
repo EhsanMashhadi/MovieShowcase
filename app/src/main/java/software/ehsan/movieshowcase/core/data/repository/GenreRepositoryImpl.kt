@@ -11,9 +11,9 @@ import javax.inject.Inject
 class GenreRepositoryImpl @Inject constructor(
     private val genreApiService: GenreApiService,
     private val dispatcherProvider: DispatcherProvider
-) : GenresRepository {
+) : GenreRepository {
 
-    private var cachedGenreMapping: Map<Int, String>? = null
+    private var cachedGenresMapping: Map<Int, String>? = null
 
     override suspend fun getAllGenres(): Result<List<Genre>> = withContext(dispatcherProvider.io) {
         try {
@@ -36,8 +36,8 @@ class GenreRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getGenreMapping(): Map<Int, String> = withContext(dispatcherProvider.io) {
-        cachedGenreMapping?.let {
+    override suspend fun getGenresMapping(): Map<Int, String> = withContext(dispatcherProvider.io) {
+        cachedGenresMapping?.let {
             return@withContext it
         }
         try {
@@ -46,12 +46,12 @@ class GenreRepositoryImpl @Inject constructor(
                 val genresMap = genresResponse.body()?.let { genreResponse ->
                     genreResponse.genres.associateBy({ it.id }, { it.name })
                 } ?: emptyMap()
-                cachedGenreMapping = genresMap
+                cachedGenresMapping = genresMap
                 return@withContext genresMap
             } else {
                 return@withContext emptyMap()
             }
-        } catch (exception: Exception) {
+        } catch (_: Exception) {
             return@withContext emptyMap()
         }
     }

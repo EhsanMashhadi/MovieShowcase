@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 class MovieRepositoryImpl @Inject constructor(
     private val movieApiService: MovieApiService,
-    private val genresRepository: GenresRepository,
+    private val genreRepository: GenreRepository,
     private val dispatcherProvider: DispatcherProvider,
     private val movieDao: MovieDao
 ) : MovieRepository {
@@ -56,7 +56,7 @@ class MovieRepositoryImpl @Inject constructor(
             val moviesResponse = topMoviesResponse.body() ?: return@withContext Result.failure(
                 ApiException.EmptyBodyException("Received successful status ${topMoviesResponse.code()} but response body was null")
             )
-            val moviesList = moviesResponse.asDomain(genreRepository = genresRepository)
+            val moviesList = moviesResponse.asDomain(genreRepository = genreRepository)
             return@withContext Result.success(
                 Movies(
                     moviesResponse.page,
@@ -91,7 +91,7 @@ class MovieRepositoryImpl @Inject constructor(
                     latestMovieResponse.body() ?: return@withContext Result.failure(
                         ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
                     )
-                val moviesList = moviesResponse.asDomain(genreRepository = genresRepository).results
+                val moviesList = moviesResponse.asDomain(genreRepository = genreRepository).results
                 return@withContext Result.success(
                     Movies(
                         moviesResponse.page,
@@ -123,7 +123,7 @@ class MovieRepositoryImpl @Inject constructor(
                 val movieDetail = moviesDetailsResponse.body() ?: return@withContext Result.failure(
                     ApiException.EmptyBodyException("Received successful status ${moviesDetailsResponse.code()} but response body was null")
                 )
-                val genresMapping = genresRepository.getGenreMapping()
+                val genresMapping = genreRepository.getGenresMapping()
                 val genresName = movieDetail.genres?.mapNotNull { genresMapping[it] }
                 val movie = movieDetail.asDomain(genresName)
                 return@withContext Result.success(movie)
@@ -176,7 +176,7 @@ class MovieRepositoryImpl @Inject constructor(
                 val pagingSource =
                     MoviesPagingSource(
                         movieApiService,
-                        genresRepository,
+                        genreRepository,
                         query,
                         _totalMoviesResultCount
                     )

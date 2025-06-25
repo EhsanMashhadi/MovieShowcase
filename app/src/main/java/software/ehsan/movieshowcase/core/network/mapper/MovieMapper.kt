@@ -1,6 +1,6 @@
 package software.ehsan.movieshowcase.core.network.mapper
 
-import software.ehsan.movieshowcase.core.data.repository.GenresRepository
+import software.ehsan.movieshowcase.core.data.repository.GenreRepository
 import software.ehsan.movieshowcase.core.database.model.MovieEntity
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
@@ -9,12 +9,12 @@ import software.ehsan.movieshowcase.core.network.model.MoviesResponse
 import software.ehsan.movieshowcase.util.getImageUrl
 
 
-suspend fun MoviesResponse.asDomain(genreRepository: GenresRepository): Movies {
-    val genresMappingResult = genreRepository.getGenreMapping()
+suspend fun MoviesResponse.asDomain(genreRepository: GenreRepository): Movies {
+    val genresMappingResult = genreRepository.getGenresMapping()
     return Movies(
         page = this.page,
         totalPages = this.totalPages,
-        totalResults = this.totalResults,
+        totalResultsCount = this.totalResults,
         results = this.results.map { it.asDomain(it.genres?.mapNotNull { genresMappingResult[it] }) })
 }
 

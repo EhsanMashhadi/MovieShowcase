@@ -49,7 +49,7 @@ class GetLatestMoviesUseCase @Inject constructor(private val movieRepository: Mo
                     latestMovies.page,
                     moviesWithBookmark,
                     latestMovies.totalPages,
-                    latestMovies.totalResults
+                    latestMovies.totalResultsCount
                 )
             )
         }.distinctUntilChanged()

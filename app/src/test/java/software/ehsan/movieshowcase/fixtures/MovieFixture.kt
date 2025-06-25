@@ -24,7 +24,7 @@ object MovieFixture {
             page = 1,
             results = movie(size, isBookmarked = isBookmarked),
             totalPages = 1,
-            totalResults = size,
+            totalResultsCount = size,
         )
 
     fun moviesEntity(size: Int) = List(size) { i ->

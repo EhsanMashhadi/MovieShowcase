@@ -10,7 +10,7 @@ import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 
 class MoviesPagingSource(
     private val moviesApiService: MovieApiService,
-    private val genresRepository: GenresRepository,
+    private val genreRepository: GenreRepository,
     private val query: String,
     private val totalItemCountFlow: MutableStateFlow<Int>
 ) : PagingSource<Int, Movie>() {
@@ -18,6 +18,8 @@ class MoviesPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
         try {
             val currentPage = params.key ?: 1
+            val loadSize = params.loadSize
+            println("Loading page $currentPage with size $loadSize")
             val searchResponse = moviesApiService.search(query = query, page = currentPage)
             if (!searchResponse.isSuccessful) {
                 val errorBody =
@@ -35,7 +37,7 @@ class MoviesPagingSource(
                 totalItemCountFlow.value = moviesResponse.totalResults
             }
 
-            val moviesList = moviesResponse.asDomain(genreRepository = genresRepository).results
+            val moviesList = moviesResponse.asDomain(genreRepository = genreRepository).results
             return LoadResult.Page(
                 data = moviesList,
                 prevKey = if (currentPage == 1) null else currentPage - 1,

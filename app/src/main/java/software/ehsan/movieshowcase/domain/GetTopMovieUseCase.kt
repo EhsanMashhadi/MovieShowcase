@@ -37,7 +37,7 @@ class GetTopMovieUseCase @Inject constructor(private val movieRepository: MovieR
                     movies.page,
                     moviesWithBookmark,
                     movies.totalPages,
-                    movies.totalResults
+                    movies.totalResultsCount
                 )
             )
         }.distinctUntilChanged()

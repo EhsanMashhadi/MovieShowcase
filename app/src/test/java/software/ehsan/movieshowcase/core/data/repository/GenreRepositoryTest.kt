@@ -21,13 +21,13 @@ class GenreRepositoryTest {
     @MockK
     lateinit var genreApiService: GenreApiService
 
-    private lateinit var genresRepository: GenresRepository
+    private lateinit var genreRepository: GenreRepository
 
     @Before
     fun setup() {
         MockKAnnotations.init(this)
         val dispatcherProvider = TestDispatcherProvider()
-        genresRepository = GenreRepositoryImpl(
+        genreRepository = GenreRepositoryImpl(
             genreApiService = genreApiService,
             dispatcherProvider = dispatcherProvider
         )
@@ -36,7 +36,7 @@ class GenreRepositoryTest {
     @Test
     fun getGenres_apiReturnEmpty_emptyGenres() = runTest {
         coEvery { genreApiService.getMoviesGenreIds() } returns Response.success(GenreFixture.emptyGenresResponse)
-        val response = genresRepository.getAllGenres()
+        val response = genreRepository.getAllGenres()
         assert(response.isSuccess)
         assertEquals(emptyList<GenresResponse>(), response.getOrThrow())
     }
@@ -45,7 +45,7 @@ class GenreRepositoryTest {
     fun getGenres_apiReturnGenres_returnGenres() = runTest {
         val genres = GenreFixture.genresResponse(5)
         coEvery { genreApiService.getMoviesGenreIds() } returns Response.success(genres)
-        val response = genresRepository.getAllGenres()
+        val response = genreRepository.getAllGenres()
         assert(response.isSuccess)
         assertEquals(genres.genres.map { it.asGenre() }, response.getOrThrow())
     }
@@ -53,7 +53,7 @@ class GenreRepositoryTest {
     @Test
     fun getGenres_apiReturnError_exceptionOccurred() = runTest {
         coEvery { genreApiService.getMoviesGenreIds() } returns errorResponse(400)
-        val result = genresRepository.getAllGenres()
+        val result = genreRepository.getAllGenres()
         assert(result.isFailure)
         assertEquals(null, result.getOrNull())
     }
@@ -62,7 +62,7 @@ class GenreRepositoryTest {
     fun getGenres_apiReturnException_returnFailResult() = runTest {
         val runtimeException = RuntimeException("Network Failure")
         coEvery { genreApiService.getMoviesGenreIds() } throws runtimeException
-        val response = genresRepository.getAllGenres()
+        val response = genreRepository.getAllGenres()
         assert(response.isFailure)
         assertEquals(null, response.getOrNull())
         assertEquals(ApiException.UnknownException("Network Failure"), response.exceptionOrNull())

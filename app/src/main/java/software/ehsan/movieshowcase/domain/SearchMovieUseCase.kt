@@ -31,7 +31,7 @@ class SearchMovieUseCase @Inject constructor(
         ) { pagedMovies, totalCount ->
             PagedMovies(
                 movies = pagedMoviesFlowWithBookmarkState,
-                totalResult = totalCount
+                totalResultCount = totalCount
             )
         }.distinctUntilChanged()
     }

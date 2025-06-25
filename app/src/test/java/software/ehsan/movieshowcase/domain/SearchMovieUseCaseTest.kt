@@ -47,7 +47,7 @@ class SearchMovieUseCaseTest {
         result.test {
             val response = awaitItem()
             Assert.assertEquals(expectedMovie.results, response.movies.asSnapshot())
-            Assert.assertEquals(0, response.totalResult)
+            Assert.assertEquals(0, response.totalResultCount)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -55,7 +55,7 @@ class SearchMovieUseCaseTest {
     @Test
     fun searchMovieUseCase_validQuery_returnsSearchResults() = runTest {
         val expectedMovies = MovieFixture.movies(size = 3, isBookmarked = true)
-        coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(3)
+        coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(expectedMovies.totalResultsCount)
         coEvery { movieRepository.search(any()) } returns flow { PagingData.from(emptyList()) }
         coEvery { getMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
             PagingData.from(expectedMovies.results)
@@ -67,7 +67,7 @@ class SearchMovieUseCaseTest {
         searchMovieUseCase.invoke("test").test {
             val response = awaitItem()
             Assert.assertEquals(expectedMovies.results, response.movies.asSnapshot())
-            Assert.assertEquals(expectedMovies.totalResults, 3)
+            Assert.assertEquals(expectedMovies.totalResultsCount, 3)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -77,7 +77,7 @@ class SearchMovieUseCaseTest {
     fun searchMovieUseCase_error_returnsFailure() = runTest {
         val errorMessage = "Network Error"
         coEvery { movieRepository.search(any()) } returns flow { throw Exception(errorMessage) }
-        coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(3)
+        coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(0)
         coEvery { getMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
             PagingData.from(emptyList())
         )

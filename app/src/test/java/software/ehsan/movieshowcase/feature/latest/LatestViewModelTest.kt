@@ -71,7 +71,7 @@ class LatestViewModelTest {
                 Movies(
                     page = 1,
                     totalPages = 1,
-                    totalResults = 1,
+                    totalResultsCount = 1,
                     results = emptyList()
                 )
             )
@@ -118,7 +118,7 @@ class LatestViewModelTest {
                 Movies(
                     page = 1,
                     totalPages = 1,
-                    totalResults = 1,
+                    totalResultsCount = 1,
                     results = emptyList()
                 )
             )
