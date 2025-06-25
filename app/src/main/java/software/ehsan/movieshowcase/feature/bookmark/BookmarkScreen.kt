@@ -3,13 +3,12 @@ package software.ehsan.movieshowcase.feature.bookmark
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -18,9 +17,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -33,7 +30,6 @@ import software.ehsan.movieshowcase.R
 import software.ehsan.movieshowcase.core.designsystem.component.AppTopAppBar
 import software.ehsan.movieshowcase.core.designsystem.component.CenteredLoading
 import software.ehsan.movieshowcase.core.designsystem.component.MovieDetailsCard
-import software.ehsan.movieshowcase.core.designsystem.component.MovieShowcaseIcons
 import software.ehsan.movieshowcase.core.designsystem.theme.MovieShowcaseTheme
 import software.ehsan.movieshowcase.core.designsystem.theme.spacing
 import software.ehsan.movieshowcase.core.model.Movie
@@ -42,12 +38,10 @@ import software.ehsan.movieshowcase.util.fixtures.movie
 @Composable
 fun BookmarkScreen(
     viewModel: BookmarkViewModel = hiltViewModel(),
-    onGoToDetails: (movie: Movie) -> Unit,
-    onBack: () -> Unit
+    onGoToDetails: (movie: Movie) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     BookmarkScaffold(
-        onBack = onBack
     ) { innerPadding ->
         BookmarkContent(
             uiState,
@@ -65,11 +59,12 @@ fun BookmarkContent(
     onGoToDetail: (Movie) -> Unit,
     paddingValues: PaddingValues
 ) {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(paddingValues)
-        .padding(horizontal = MaterialTheme.spacing.l)
-        .padding(top = MaterialTheme.spacing.xxl)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = MaterialTheme.spacing.l)
+    ) {
 
         when (uiState) {
             BookmarkState.Idle -> {}
@@ -95,7 +90,6 @@ fun BookmarkContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookmarkScaffold(
-    onBack: () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     val text = buildAnnotatedString {
@@ -106,29 +100,17 @@ private fun BookmarkScaffold(
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
-            BookmarkTopBar(text = text, onBack = onBack)
+            BookmarkTopBar(text = text)
         }) { innerPadding -> content(innerPadding) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BookmarkTopBar(text: AnnotatedString, onBack: () -> Unit) {
+private fun BookmarkTopBar(text: AnnotatedString) {
     AppTopAppBar(
         title = text,
-        navigationIcon = {
-            IconButton(
-                onClick = {
-                    onBack()
-                },
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(MovieShowcaseIcons.backIcon),
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    contentDescription = "Back to previous screen"
-                )
-            }
-        },
         color = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -190,7 +172,12 @@ fun PreviewBookmarkLoading() {
     MovieShowcaseTheme {
         Surface {
             val uiState = BookmarkState.Loading
-            BookmarkContent(uiState = uiState, onBookmark = {}, onGoToDetail = {}, paddingValues = PaddingValues(0.dp))
+            BookmarkContent(
+                uiState = uiState,
+                onBookmark = {},
+                onGoToDetail = {},
+                paddingValues = PaddingValues(0.dp)
+            )
         }
     }
 }
@@ -201,7 +188,12 @@ fun PreviewBookmarkError() {
     MovieShowcaseTheme {
         Surface {
             val uiState = BookmarkState.Error("error")
-            BookmarkContent(uiState = uiState, onBookmark = {}, onGoToDetail = {}, paddingValues = PaddingValues(0.dp))
+            BookmarkContent(
+                uiState = uiState,
+                onBookmark = {},
+                onGoToDetail = {},
+                paddingValues = PaddingValues(0.dp)
+            )
         }
     }
 }
@@ -214,7 +206,12 @@ fun PreviewBookmarkSuccess() {
             val uiState = BookmarkState.Success(
                 bookmarkedMovies = movie(5)
             )
-            BookmarkContent(uiState = uiState, onBookmark = {}, onGoToDetail = {}, paddingValues = PaddingValues(0.dp))
+            BookmarkContent(
+                uiState = uiState,
+                onBookmark = {},
+                onGoToDetail = {},
+                paddingValues = PaddingValues(0.dp)
+            )
         }
     }
 }

@@ -63,7 +63,7 @@ fun AppNavHost(
             })
         }
         composable<Screens.Bookmarks> {
-            BookmarkScreen(onBack = { navController.popBackStack() }, onGoToDetails = {
+            BookmarkScreen(onGoToDetails = {
                 navController.navigateSafe(
                     route = Screens.MovieDetails(it.id)
                 )
