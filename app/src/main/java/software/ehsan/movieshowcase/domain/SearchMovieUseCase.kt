@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 class SearchMovieUseCase @Inject constructor(
     private val movieRepository: MovieRepository,
-    private val getMoviesWithBookmarkStatusUseCase: GetMoviesWithBookmarkStatusUseCase
+    private val enrichMoviesWithBookmarkStatusUseCase: EnrichMoviesWithBookmarkStatusUseCase
 ) {
 
     operator fun invoke(query: String): Flow<PagedMovies> {
@@ -22,7 +22,7 @@ class SearchMovieUseCase @Inject constructor(
         val pagedMoviesFlow: Flow<PagingData<Movie>> =
             movieRepository.search(query)
         val pagedMoviesFlowWithBookmarkState: Flow<PagingData<Movie>> =
-            getMoviesWithBookmarkStatusUseCase.perform(pagedMoviesFlow)
+            enrichMoviesWithBookmarkStatusUseCase.perform(pagedMoviesFlow)
         val totalItemCountFlow: Flow<Int> = movieRepository.totalMoviesResultCount
 
         return combine(

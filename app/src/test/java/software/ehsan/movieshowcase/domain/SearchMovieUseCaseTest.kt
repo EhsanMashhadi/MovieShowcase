@@ -26,7 +26,7 @@ class SearchMovieUseCaseTest {
     lateinit var movieRepository: MovieRepository
 
     @MockK
-    lateinit var getMoviesWithBookmarkStatusUseCase: GetMoviesWithBookmarkStatusUseCase
+    lateinit var enrichMoviesWithBookmarkStatusUseCase: EnrichMoviesWithBookmarkStatusUseCase
 
     @Before
     fun setup() {
@@ -40,7 +40,7 @@ class SearchMovieUseCaseTest {
         val expectedMovie = MovieFixture.movies(0)
         val searchMovieUseCase = SearchMovieUseCase(
             movieRepository = movieRepository,
-            getMoviesWithBookmarkStatusUseCase = getMoviesWithBookmarkStatusUseCase
+            enrichMoviesWithBookmarkStatusUseCase = enrichMoviesWithBookmarkStatusUseCase
         )
         val result = searchMovieUseCase.invoke("")
 
@@ -57,12 +57,12 @@ class SearchMovieUseCaseTest {
         val expectedMovies = MovieFixture.movies(size = 3, isBookmarked = true)
         coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(expectedMovies.totalResultsCount)
         coEvery { movieRepository.search(any()) } returns flow { PagingData.from(emptyList()) }
-        coEvery { getMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
+        coEvery { enrichMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
             PagingData.from(expectedMovies.results)
         )
         val searchMovieUseCase = SearchMovieUseCase(
             movieRepository = movieRepository,
-            getMoviesWithBookmarkStatusUseCase = getMoviesWithBookmarkStatusUseCase
+            enrichMoviesWithBookmarkStatusUseCase = enrichMoviesWithBookmarkStatusUseCase
         )
         searchMovieUseCase.invoke("test").test {
             val response = awaitItem()
@@ -78,12 +78,12 @@ class SearchMovieUseCaseTest {
         val errorMessage = "Network Error"
         coEvery { movieRepository.search(any()) } returns flow { throw Exception(errorMessage) }
         coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(0)
-        coEvery { getMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
+        coEvery { enrichMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
             PagingData.from(emptyList())
         )
         val searchMovieUseCase = SearchMovieUseCase(
             movieRepository = movieRepository,
-            getMoviesWithBookmarkStatusUseCase = getMoviesWithBookmarkStatusUseCase
+            enrichMoviesWithBookmarkStatusUseCase = enrichMoviesWithBookmarkStatusUseCase
         )
         searchMovieUseCase.invoke("test").test {
             val response = awaitItem()

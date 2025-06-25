@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import software.ehsan.movieshowcase.core.data.repository.MovieRepository
 import software.ehsan.movieshowcase.core.model.Movie
 
-class GetMoviesWithBookmarkStatusUseCase @Inject constructor(movieRepository: MovieRepository) {
+class EnrichMoviesWithBookmarkStatusUseCase @Inject constructor(movieRepository: MovieRepository) {
 
     private val bookmarkedMovieIdsFlow: Flow<Set<Int>> = movieRepository.getAllBookmarkedMovies()
         .map { result ->
