@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.domain.GetLatestMoviesUseCase
-import software.ehsan.movieshowcase.domain.GetTopMovieUseCase
+import software.ehsan.movieshowcase.domain.GetRandomTopMovieUseCase
 import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
 import software.ehsan.movieshowcase.feature.dashboard.DashboardState.Idle
 import software.ehsan.movieshowcase.feature.dashboard.DashboardState.Loading
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val getTopMovieUseCase: GetTopMovieUseCase,
+    private val getRandomTopMovieUseCase: GetRandomTopMovieUseCase,
     private val getLatestMovieUseCase: GetLatestMoviesUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase
 ) : ViewModel() {
@@ -33,7 +33,7 @@ class DashboardViewModel @Inject constructor(
                 _uiState.value = Loading
                 viewModelScope.launch {
                     combine(
-                        getTopMovieUseCase(),
+                        getRandomTopMovieUseCase(),
                         getLatestMovieUseCase(num = 1)
                     ) { topMovies, latestMovies ->
                         when {

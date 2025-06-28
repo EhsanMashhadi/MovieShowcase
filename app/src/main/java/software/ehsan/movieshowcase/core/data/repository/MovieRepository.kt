@@ -11,7 +11,7 @@ import software.ehsan.movieshowcase.core.model.Movies
 interface MovieRepository {
     val totalMoviesResultCount: StateFlow<Int>
     val repositoryScope: CoroutineScope
-    suspend fun getTopMovies(): Result<Movies>
+    suspend fun getTopMovies(page: Int): Result<Movies>
     suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies>
     suspend fun getMovieDetails(movieId: Int): Result<Movie>
     suspend fun insertMovie(movie: Movie): Result<Unit>

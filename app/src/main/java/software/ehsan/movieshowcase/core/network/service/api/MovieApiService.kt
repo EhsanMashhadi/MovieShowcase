@@ -9,7 +9,7 @@ import software.ehsan.movieshowcase.core.network.model.MoviesResponse
 
 interface MovieApiService {
     @GET("movie/top_rated")
-    suspend fun getTopMovies(): Response<MoviesResponse>
+    suspend fun getTopMovies(@Query("page") page: Int): Response<MoviesResponse>
 
     @GET("discover/movie")
     suspend fun getLatestMovies(

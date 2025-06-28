@@ -19,8 +19,8 @@ class MoviesApiTest {
     fun getTopMovies_returnsSuccess_successResponse() = runTest {
         val expectedMovie = MovieFixture.fiveMoviesResponse
         val movieApi: MovieApiService = mockk()
-        coEvery { movieApi.getTopMovies() } returns Response.success(expectedMovie)
-        val actualMovies = movieApi.getTopMovies()
+        coEvery { movieApi.getTopMovies(any()) } returns Response.success(expectedMovie)
+        val actualMovies = movieApi.getTopMovies(1)
         assertTrue(actualMovies.isSuccessful)
         assertEquals(expectedMovie, actualMovies.body())
     }
@@ -32,8 +32,8 @@ class MoviesApiTest {
             500,
             "{\"message\":\"Internal Server Error\"}".toResponseBody(null)
         )
-        coEvery { movieApi.getTopMovies() } returns errorResponse
-        val actualMovies = movieApi.getTopMovies()
+        coEvery { movieApi.getTopMovies(any()) } returns errorResponse
+        val actualMovies = movieApi.getTopMovies(1)
         assertFalse(actualMovies.isSuccessful)
     }
 }

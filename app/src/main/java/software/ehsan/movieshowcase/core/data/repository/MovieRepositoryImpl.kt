@@ -40,37 +40,38 @@ class MovieRepositoryImpl @Inject constructor(
 
     override val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override suspend fun getTopMovies(): Result<Movies> = withContext(dispatcherProvider.io) {
-        try {
-            val topMoviesResponse = movieApiService.getTopMovies()
-            if (!topMoviesResponse.isSuccessful) {
-                val errorBody =
-                    topMoviesResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
-                val exception = when (topMoviesResponse.code()) {
-                    400 -> ApiException.BadRequestException(errorBody)
-                    401 -> ApiException.UnauthorizedException(errorBody)
-                    else -> ApiException.ServerException(topMoviesResponse.code(), errorBody)
+    override suspend fun getTopMovies(page: Int): Result<Movies> =
+        withContext(dispatcherProvider.io) {
+            try {
+                val topMoviesResponse = movieApiService.getTopMovies(page = page)
+                if (!topMoviesResponse.isSuccessful) {
+                    val errorBody =
+                        topMoviesResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
+                    val exception = when (topMoviesResponse.code()) {
+                        400 -> ApiException.BadRequestException(errorBody)
+                        401 -> ApiException.UnauthorizedException(errorBody)
+                        else -> ApiException.ServerException(topMoviesResponse.code(), errorBody)
+                    }
+                    return@withContext Result.failure(exception)
                 }
-                return@withContext Result.failure(exception)
-            }
-            val moviesResponse = topMoviesResponse.body() ?: return@withContext Result.failure(
-                ApiException.EmptyBodyException("Received successful status ${topMoviesResponse.code()} but response body was null")
-            )
-            val moviesList = moviesResponse.asDomain(genreRepository = genreRepository)
-            return@withContext Result.success(
-                Movies(
-                    moviesResponse.page,
-                    moviesList.results,
-                    moviesResponse.totalPages,
-                    moviesResponse.totalResults
+                val moviesResponse = topMoviesResponse.body() ?: return@withContext Result.failure(
+                    ApiException.EmptyBodyException("Received successful status ${topMoviesResponse.code()} but response body was null")
                 )
-            )
-        } catch (ioException: IOException) {
-            return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
-        } catch (exception: Exception) {
-            return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
+                val moviesList = moviesResponse.asDomain(genreRepository = genreRepository)
+                return@withContext Result.success(
+                    Movies(
+                        moviesResponse.page,
+                        moviesList.results,
+                        moviesResponse.totalPages,
+                        moviesResponse.totalResults
+                    )
+                )
+            } catch (ioException: IOException) {
+                return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
+            } catch (exception: Exception) {
+                return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
+            }
         }
-    }
 
     override suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies> =
         withContext(dispatcherProvider.io) {

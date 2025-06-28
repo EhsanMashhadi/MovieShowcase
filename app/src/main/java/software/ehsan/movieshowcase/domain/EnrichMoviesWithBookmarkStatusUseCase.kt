@@ -18,9 +18,17 @@ class EnrichMoviesWithBookmarkStatusUseCase @Inject constructor(movieRepository:
         }
         .distinctUntilChanged()
 
-    fun perform(moviesPagingDataFlow: Flow<PagingData<Movie>>): Flow<PagingData<Movie>> {
+    fun enrichPagingMovies(moviesPagingDataFlow: Flow<PagingData<Movie>>): Flow<PagingData<Movie>> {
         return moviesPagingDataFlow.combine(bookmarkedMovieIdsFlow) { pagingData, bookmarkedIds ->
             pagingData.map { movie ->
+                movie.copy(isBookmarked = bookmarkedIds.contains(movie.id))
+            }
+        }
+    }
+
+    fun enrichMovieList(moviesListFlow: Flow<List<Movie>>): Flow<List<Movie>> {
+        return moviesListFlow.combine(bookmarkedMovieIdsFlow) { movieList, bookmarkedIds ->
+            movieList.map { movie ->
                 movie.copy(isBookmarked = bookmarkedIds.contains(movie.id))
             }
         }

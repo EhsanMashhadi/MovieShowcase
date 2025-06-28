@@ -90,7 +90,7 @@ private fun DashboardScaffold(
     content: @Composable (PaddingValues) -> Unit
 ) {
     val text = if (isSuccess) buildAnnotatedString {
-        append(stringResource(R.string.dashboard_topFiveTitle))
+        append(stringResource(R.string.dashboard_topRandomMoviesTitle))
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.tertiary)) {
             append(stringResource(R.string.all_dot))
         }
@@ -144,7 +144,7 @@ fun DashboardContent(
 
         is DashboardState.Success -> {
             DashboardSuccessContent(
-                topMovies = dashboardState.topMovies,
+                topRandomMovies = dashboardState.topMovies,
                 latestMovie = dashboardState.latestMovie,
                 modifier = modifier,
                 goToDetail = goToDetail,
@@ -161,7 +161,7 @@ fun DashboardContent(
 
 @Composable
 private fun DashboardSuccessContent(
-    topMovies: Movies?,
+    topRandomMovies: Movies?,
     latestMovie: Movie?,
     modifier: Modifier = Modifier,
     goToDetail: (movieId: Int) -> Unit,
@@ -178,9 +178,9 @@ private fun DashboardSuccessContent(
         ),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxl)
     ) {
-        topMovies?.let {
+        topRandomMovies?.let {
             item {
-                TopFiveList(items = it.results, goToDetail = goToDetail, onBookmark = onBookmark)
+                TopRandomList(items = it.results, goToDetail = goToDetail, onBookmark = onBookmark)
             }
         }
         latestMovie?.let {
@@ -226,7 +226,7 @@ private fun DashboardErrorContent() {
 }
 
 @Composable
-private fun TopFiveList(
+private fun TopRandomList(
     items: List<Movie>,
     goToDetail: (movieId: Int) -> Unit = {},
     onBookmark: (movie: Movie) -> Unit
@@ -237,7 +237,7 @@ private fun TopFiveList(
         modifier = Modifier.testTag("list"),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xl)
     ) {
-        itemsIndexed(items = items) { index, item ->
+        itemsIndexed(items = items, key = { _, item -> item.id }) { index, item ->
             Log.d("item", item.toString())
             MovieCard(
                 item.title,
