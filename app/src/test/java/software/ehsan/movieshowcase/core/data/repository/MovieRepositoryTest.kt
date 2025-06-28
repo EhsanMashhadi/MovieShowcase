@@ -49,9 +49,9 @@ class MovieRepositoryTest {
 
     @Test
     fun getTopMovies_apiReturnEmpty_emptyTopMovies() = runTest {
-        coEvery { movieApiService.getTopMovies() } returns Response.success(MovieFixture.emptyMovieResponse)
+        coEvery { movieApiService.getTopMovies(any()) } returns Response.success(MovieFixture.emptyMovieResponse)
         coEvery { genreRepository.getGenresMapping() } returns emptyMap()
-        val response = moviesRepository.getTopMovies()
+        val response = moviesRepository.getTopMovies(1)
         assert(response.isSuccess)
         assertEquals(1, response.getOrThrow().page)
         assertEquals(1, response.getOrThrow().totalPages)
@@ -61,9 +61,9 @@ class MovieRepositoryTest {
 
     @Test
     fun getTopMovies_apiReturnFiveItems_topFiveItems() = runTest {
-        coEvery { movieApiService.getTopMovies() } returns Response.success(MovieFixture.fiveMoviesResponse)
+        coEvery { movieApiService.getTopMovies(any()) } returns Response.success(MovieFixture.fiveMoviesResponse)
         coEvery { genreRepository.getGenresMapping() } returns emptyMap()
-        val response = moviesRepository.getTopMovies()
+        val response = moviesRepository.getTopMovies(1)
         assert(response.isSuccess)
         assertEquals(1, response.getOrThrow().page)
         assertEquals(1, response.getOrThrow().totalPages)
@@ -76,8 +76,8 @@ class MovieRepositoryTest {
 
     @Test
     fun getTopMovies_apiReturnError_exceptionOccurred() = runTest {
-        coEvery { movieApiService.getTopMovies() } returns errorResponse(400)
-        val response = moviesRepository.getTopMovies()
+        coEvery { movieApiService.getTopMovies(any()) } returns errorResponse(400)
+        val response = moviesRepository.getTopMovies(1)
         assert(response.isFailure)
         assertEquals(null, response.getOrNull())
         assertEquals(
@@ -87,9 +87,9 @@ class MovieRepositoryTest {
 
     @Test
     fun getTopMovies_apiReturnEmptyContent_returnFailResult() = runTest {
-        coEvery { movieApiService.getTopMovies() } returns Response.success(null)
+        coEvery { movieApiService.getTopMovies(any()) } returns Response.success(null)
         coEvery { genreRepository.getGenresMapping() } returns emptyMap()
-        val response = moviesRepository.getTopMovies()
+        val response = moviesRepository.getTopMovies(1)
         assert(response.isFailure)
         assertEquals(null, response.getOrNull())
         assertEquals(
@@ -101,8 +101,8 @@ class MovieRepositoryTest {
     @Test
     fun getTopMovies_apiReturnException_returnFailResult() = runTest {
         val runtimeException = RuntimeException("Network Failure")
-        coEvery { movieApiService.getTopMovies() } throws runtimeException
-        val response = moviesRepository.getTopMovies()
+        coEvery { movieApiService.getTopMovies(any()) } throws runtimeException
+        val response = moviesRepository.getTopMovies(1)
         assert(response.isFailure)
         assertEquals(null, response.getOrNull())
         assertEquals(ApiException.UnknownException("Network Failure"), response.exceptionOrNull())

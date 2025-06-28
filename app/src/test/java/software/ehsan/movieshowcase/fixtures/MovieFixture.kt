@@ -19,12 +19,17 @@ object MovieFixture {
         )
     }
 
-    fun movies(size: Int, isBookmarked: Boolean = false) =
+    fun movies(
+        size: Int,
+        isBookmarked: Boolean = false,
+        totalPage: Int = 1000,
+        totalResultsCount: Int = totalPage * size
+    ) =
         Movies(
             page = 1,
             results = movie(size, isBookmarked = isBookmarked),
-            totalPages = 1,
-            totalResultsCount = size,
+            totalPages = totalPage,
+            totalResultsCount = totalResultsCount,
         )
 
     fun moviesEntity(size: Int) = List(size) { i ->

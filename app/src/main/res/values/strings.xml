@@ -11,7 +11,7 @@
     <string name="all_failed_bookmark">Failed to bookmark the movie, please try again!</string>
     <string name="all_retry">Retry</string>
 
-    <string name="dashboard_topFiveTitle">Top Five</string>
+    <string name="dashboard_topRandomMoviesTitle">Random Top</string>
     <string name="latestScreen_appBarTitle">Discover</string>
     <string name="bookmarkScreen_appBarTitle">Bookmarks</string>
     <string name="searchScreen_appBarTitle">Search</string>

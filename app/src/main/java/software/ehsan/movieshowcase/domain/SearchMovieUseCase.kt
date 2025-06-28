@@ -22,7 +22,7 @@ class SearchMovieUseCase @Inject constructor(
         val pagedMoviesFlow: Flow<PagingData<Movie>> =
             movieRepository.search(query)
         val pagedMoviesFlowWithBookmarkState: Flow<PagingData<Movie>> =
-            enrichMoviesWithBookmarkStatusUseCase.perform(pagedMoviesFlow)
+            enrichMoviesWithBookmarkStatusUseCase.enrichPagingMovies(pagedMoviesFlow)
         val totalItemCountFlow: Flow<Int> = movieRepository.totalMoviesResultCount
 
         return combine(

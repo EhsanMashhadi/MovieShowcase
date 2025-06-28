@@ -54,10 +54,11 @@ class SearchMovieUseCaseTest {
 
     @Test
     fun searchMovieUseCase_validQuery_returnsSearchResults() = runTest {
-        val expectedMovies = MovieFixture.movies(size = 3, isBookmarked = true)
+        val expectedMovies =
+            MovieFixture.movies(size = 3, isBookmarked = true)
         coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(expectedMovies.totalResultsCount)
         coEvery { movieRepository.search(any()) } returns flow { PagingData.from(emptyList()) }
-        coEvery { enrichMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
+        coEvery { enrichMoviesWithBookmarkStatusUseCase.enrichPagingMovies(any()) } returns flowOf(
             PagingData.from(expectedMovies.results)
         )
         val searchMovieUseCase = SearchMovieUseCase(
@@ -67,7 +68,6 @@ class SearchMovieUseCaseTest {
         searchMovieUseCase.invoke("test").test {
             val response = awaitItem()
             Assert.assertEquals(expectedMovies.results, response.movies.asSnapshot())
-            Assert.assertEquals(expectedMovies.totalResultsCount, 3)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -78,7 +78,7 @@ class SearchMovieUseCaseTest {
         val errorMessage = "Network Error"
         coEvery { movieRepository.search(any()) } returns flow { throw Exception(errorMessage) }
         coEvery { movieRepository.totalMoviesResultCount } returns MutableStateFlow(0)
-        coEvery { enrichMoviesWithBookmarkStatusUseCase.perform(any()) } returns flowOf(
+        coEvery { enrichMoviesWithBookmarkStatusUseCase.enrichPagingMovies(any()) } returns flowOf(
             PagingData.from(emptyList())
         )
         val searchMovieUseCase = SearchMovieUseCase(

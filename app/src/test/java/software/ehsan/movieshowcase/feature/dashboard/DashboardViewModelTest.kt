@@ -13,7 +13,7 @@ import org.junit.Rule
 import org.junit.Test
 import software.ehsan.movieshowcase.core.model.Movies
 import software.ehsan.movieshowcase.domain.GetLatestMoviesUseCase
-import software.ehsan.movieshowcase.domain.GetTopMovieUseCase
+import software.ehsan.movieshowcase.domain.GetRandomTopMovieUseCase
 import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
 import software.ehsan.movieshowcase.fixtures.MovieFixture
 import software.ehsan.movieshowcase.util.MainDispatcherRule
@@ -25,7 +25,7 @@ class DashboardViewModelTest {
     val rule = MainDispatcherRule()
 
     @MockK
-    lateinit var getTopMoviesUseCase: GetTopMovieUseCase
+    lateinit var getTopMoviesUseCase: GetRandomTopMovieUseCase
 
     @MockK
     lateinit var getLatestMoviesUseCase: GetLatestMoviesUseCase
