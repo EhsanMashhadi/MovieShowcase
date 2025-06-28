@@ -35,13 +35,21 @@ jobs:
         env:
           FIREBASE_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON_BASE64 }}
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Get current date for versioning (YYMMDD)
+        id: date
+        run: |
+          # Format: YYMMDD (Last two digits of Year, Month, Day)
+          # Example (June 28, 2025): 250628
+          echo "NIGHTLY_DATE_CODE=$(date +'%y%m%d')" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Debug APK to Firebase App Distribution
+      - name: Generate nightly build
+        run: ./gradlew assembleDebug -PversionNameSuffix=${{ steps.date.outputs.NIGHTLY_DATE_CODE }} -PversionCode=${{ steps.date.outputs.NIGHTLY_DATE_CODE }}
+
+      - name: Upload nightly build APK to the firebase app distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ env.FIREBASE_APP_ID_DEBUG }}
           token: ${{ env.FIREBASE_TOKEN }}
+          groups: testers
           releaseNotes: 'Nightly debug build from GitHub Actions. Built on ${{ github.event.release.tag_name || github.ref_name }} on ${{ github.event.repository.name }}.'
           file: ${{ env.APK_PATH }}

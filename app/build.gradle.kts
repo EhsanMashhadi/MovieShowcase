@@ -24,6 +24,15 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        val passedVersionCode = project.findProperty("versionCode")?.toString()
+        val versionNameSuffix = project.findProperty("versionNameSuffix")?.toString() ?: ""
+
+        if (!passedVersionCode.isNullOrEmpty()) {
+            versionCode = passedVersionCode.toInt()
+        }
+        if (versionNameSuffix.isNotEmpty()) {
+            versionName = "${defaultConfig.versionName}-nightly.${versionNameSuffix}"
+        }
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val apiAuthToken = getApiAuthToken()
         buildConfigField("String", "AUTHORIZATION_TOKEN", "\"${apiAuthToken}\"")
