@@ -1,9 +1,13 @@
 package software.ehsan.movieshowcase.feature.latest
 
+import androidx.paging.PagingData
+import androidx.paging.testing.asSnapshot
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -15,9 +19,11 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import software.ehsan.movieshowcase.core.model.Movies
+import software.ehsan.movieshowcase.core.model.Genre
+import software.ehsan.movieshowcase.core.model.PagedMovies
 import software.ehsan.movieshowcase.domain.GetGenresUseCase
 import software.ehsan.movieshowcase.domain.GetLatestMoviesUseCase
+import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
 import software.ehsan.movieshowcase.fixtures.GenreFixture
 import software.ehsan.movieshowcase.fixtures.MovieFixture
 import software.ehsan.movieshowcase.util.MainDispatcherRule
@@ -36,6 +42,8 @@ class LatestViewModelTest {
     @MockK
     lateinit var getGenreUseCase: GetGenresUseCase
 
+    @MockK
+    lateinit var toggleBookmarkUseCase: ToggleBookmarkUseCase
 
     @Before
     fun setup() {
@@ -47,14 +55,21 @@ class LatestViewModelTest {
         val detailViewModel = LatestViewModel(
             getLatestMoviesUseCase = getLatestMoviesUseCase,
             getGenresUseCase = getGenreUseCase,
+            toggleBookmarkUseCase = toggleBookmarkUseCase,
             context = RuntimeEnvironment.getApplication()
         )
-        val movie = MovieFixture.movies(1)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.success(movie))
+        val movies = MovieFixture.movie(5)
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
+            PagedMovies(
+                movies = flowOf(
+                    PagingData.from(movies)
+                ), totalResultCount = movies.size
+            )
+        )
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
         Assert.assertNull(detailViewModel.uiState.value.selectedGenre)
-        Assert.assertTrue(detailViewModel.uiState.value.genresState is LatestViewModel.UiState.Loading)
-        Assert.assertTrue(detailViewModel.uiState.value.moviesState is LatestViewModel.UiState.Loading)
+        Assert.assertTrue(detailViewModel.uiState.value.genres is LatestViewModel.UiState.Idle)
+        Assert.assertTrue(detailViewModel.uiState.value.movies is LatestViewModel.UiState.Idle)
     }
 
     @Test
@@ -63,44 +78,50 @@ class LatestViewModelTest {
         val detailViewModel = LatestViewModel(
             getLatestMoviesUseCase = getLatestMoviesUseCase,
             getGenresUseCase = getGenreUseCase,
+            toggleBookmarkUseCase = toggleBookmarkUseCase,
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(genres)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
-            Result.success(
-                Movies(
-                    page = 1,
-                    totalPages = 1,
-                    totalResultsCount = 1,
-                    results = emptyList()
-                )
-            )
-        )
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns emptyFlow()
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
         advanceUntilIdle()
-        Assert.assertTrue(detailViewModel.uiState.value.genresState is LatestViewModel.UiState.Success)
+        Assert.assertTrue(detailViewModel.uiState.value.genres is LatestViewModel.UiState.Success)
+        val returnedGenres =
+            (detailViewModel.uiState.value.genres as LatestViewModel.UiState.Success).data
         Assert.assertEquals(
             genres.size + 1, // +1 for "All Genres"
-            (detailViewModel.uiState.value.genresState as LatestViewModel.UiState.Success).data.size
+            returnedGenres.size
+        )
+        Assert.assertEquals(
+            returnedGenres[0], Genre(id = 0, name = "All")
         )
     }
 
     @Test
     fun getLatestMovies_returnMovies_showMoviesSuccessState() = runTest {
-        val movies = MovieFixture.movies(5)
+        val movies = MovieFixture.movie(5)
         val detailViewModel = LatestViewModel(
             getLatestMoviesUseCase = getLatestMoviesUseCase,
             getGenresUseCase = getGenreUseCase,
+            toggleBookmarkUseCase = toggleBookmarkUseCase,
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.success(movies))
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
+            PagedMovies(
+                movies = flowOf(
+                    PagingData.from(movies)
+                ), totalResultCount = movies.size
+            )
+        )
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
         advanceUntilIdle()
-        Assert.assertTrue(detailViewModel.uiState.value.moviesState is LatestViewModel.UiState.Success)
+        Assert.assertTrue(detailViewModel.uiState.value.movies is LatestViewModel.UiState.Success)
+        val returnedMovies =
+            (detailViewModel.uiState.value.movies as LatestViewModel.UiState.Success).data.movies.asSnapshot()
         Assert.assertEquals(
-            movies.results.size,
-            (detailViewModel.uiState.value.moviesState as LatestViewModel.UiState.Success).data.results.size
+            movies,
+            returnedMovies
         )
     }
 
@@ -110,25 +131,17 @@ class LatestViewModelTest {
         val detailViewModel = LatestViewModel(
             getLatestMoviesUseCase = getLatestMoviesUseCase,
             getGenresUseCase = getGenreUseCase,
+            toggleBookmarkUseCase = toggleBookmarkUseCase,
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.failure(exception)
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(
-            Result.success(
-                Movies(
-                    page = 1,
-                    totalPages = 1,
-                    totalResultsCount = 1,
-                    results = emptyList()
-                )
-            )
-        )
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns emptyFlow()
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadGenres)
         advanceUntilIdle()
-        Assert.assertTrue(detailViewModel.uiState.value.genresState is LatestViewModel.UiState.Success)
+        Assert.assertTrue(detailViewModel.uiState.value.genres is LatestViewModel.UiState.Success)
         Assert.assertEquals(
             0,
-            (detailViewModel.uiState.value.genresState as LatestViewModel.UiState.Success).data.size
+            (detailViewModel.uiState.value.genres as LatestViewModel.UiState.Success).data.size
         )
     }
 
@@ -138,16 +151,17 @@ class LatestViewModelTest {
         val detailViewModel = LatestViewModel(
             getLatestMoviesUseCase = getLatestMoviesUseCase,
             getGenresUseCase = getGenreUseCase,
+            toggleBookmarkUseCase = toggleBookmarkUseCase,
             context = RuntimeEnvironment.getApplication()
         )
         coEvery { getGenreUseCase.invoke() } returns Result.success(emptyList())
-        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flowOf(Result.failure(exception))
+        coEvery { getLatestMoviesUseCase.invoke(any()) } returns flow { throw exception }
         detailViewModel.handleIntent(LatestViewModel.LatestIntent.LoadLatest(selectedGenre = null))
         advanceUntilIdle()
-        Assert.assertTrue(detailViewModel.uiState.value.moviesState is LatestViewModel.UiState.Error)
+        Assert.assertTrue(detailViewModel.uiState.value.movies is LatestViewModel.UiState.Error)
         Assert.assertEquals(
             exception.message,
-            (detailViewModel.uiState.value.moviesState as LatestViewModel.UiState.Error).message
+            (detailViewModel.uiState.value.movies as LatestViewModel.UiState.Error).message
         )
     }
 }

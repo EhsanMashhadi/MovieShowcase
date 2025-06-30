@@ -15,7 +15,8 @@ interface MovieApiService {
     suspend fun getLatestMovies(
         @Query("sort_by") sortBy: String = "primary_release_date.desc",
         @Query("primary_release_date.lte") releaseDateLte: String?,
-        @Query("with_genres") genreId: Int?
+        @Query("with_genres") genreId: Int?,
+        @Query("page") page: Int?
     ): Response<MoviesResponse>
 
     @GET("movie/{movieId}")
