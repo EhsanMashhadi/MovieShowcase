@@ -110,19 +110,21 @@ class MovieRepositoryTest {
 
     @Test
     fun getLatestMovies_apiReturnSuccess_returnSuccessResult() = runTest {
+        val returnMovies = MoviesResponseFixture.fiveMoviesResponse
         coEvery {
             movieApiService.getLatestMovies(
                 sortBy = any(),
                 releaseDateLte = any(),
-                genreId = any()
+                genreId = any(),
+                page = any()
             )
-        } returns Response.success(MovieFixture.fiveMoviesResponse)
+        } returns Response.success(returnMovies)
         coEvery { genreRepository.getGenresMapping() } returns emptyMap()
         val response = moviesRepository.getLatestMovies(genre = null, releaseDateLte = null)
-        assert(response.isSuccess)
+        val movies = response.asSnapshot()
         assertEquals(
-            MovieFixture.fiveMoviesResponse.results.first().asDomain(null),
-            response.getOrThrow().results[0]
+            returnMovies.asDomain(genreRepository).results,
+            movies
         )
     }
 

@@ -8,7 +8,7 @@ import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 
-class MoviesPagingSource(
+class SearchMoviesPagingSource(
     private val moviesApiService: MovieApiService,
     private val genreRepository: GenreRepository,
     private val query: String,

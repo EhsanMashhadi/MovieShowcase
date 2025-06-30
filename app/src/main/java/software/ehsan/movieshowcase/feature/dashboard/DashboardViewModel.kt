@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import software.ehsan.movieshowcase.core.model.Movie
 import software.ehsan.movieshowcase.core.model.Movies
-import software.ehsan.movieshowcase.domain.GetLatestMoviesUseCase
 import software.ehsan.movieshowcase.domain.GetRandomTopMovieUseCase
+import software.ehsan.movieshowcase.domain.GetSingleLatestMovieUseCase
 import software.ehsan.movieshowcase.domain.ToggleBookmarkUseCase
 import software.ehsan.movieshowcase.feature.dashboard.DashboardState.Idle
 import software.ehsan.movieshowcase.feature.dashboard.DashboardState.Loading
@@ -21,9 +21,10 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val getRandomTopMovieUseCase: GetRandomTopMovieUseCase,
-    private val getLatestMovieUseCase: GetLatestMoviesUseCase,
+    private val getSingleLatestMovieUseCase: GetSingleLatestMovieUseCase,
     private val toggleBookmarkUseCase: ToggleBookmarkUseCase
 ) : ViewModel() {
+
     private val _uiState: MutableStateFlow<DashboardState> = MutableStateFlow(Idle)
     val uiState = _uiState.asStateFlow()
 
@@ -34,7 +35,7 @@ class DashboardViewModel @Inject constructor(
                 viewModelScope.launch {
                     combine(
                         getRandomTopMovieUseCase(),
-                        getLatestMovieUseCase(num = 1)
+                        getSingleLatestMovieUseCase()
                     ) { topMovies, latestMovies ->
                         when {
                             topMovies.isFailure && latestMovies.isFailure -> {
@@ -46,7 +47,7 @@ class DashboardViewModel @Inject constructor(
                                 val latestMovie = latestMovies.getOrNull()
                                 Success(
                                     topMovies = topMovies,
-                                    latestMovie = latestMovie?.results?.firstOrNull()
+                                    latestMovie = latestMovie
                                 )
                             }
 

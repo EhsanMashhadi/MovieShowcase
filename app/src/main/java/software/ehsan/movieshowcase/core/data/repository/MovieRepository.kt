@@ -12,7 +12,8 @@ interface MovieRepository {
     val totalMoviesResultCount: StateFlow<Int>
     val repositoryScope: CoroutineScope
     suspend fun getTopMovies(page: Int): Result<Movies>
-    suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies>
+    fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Flow<PagingData<Movie>>
+    suspend fun getSingleLatestMovie(): Result<Movie>
     suspend fun getMovieDetails(movieId: Int): Result<Movie>
     suspend fun insertMovie(movie: Movie): Result<Unit>
     suspend fun deleteMovie(movie: Movie): Result<Unit>

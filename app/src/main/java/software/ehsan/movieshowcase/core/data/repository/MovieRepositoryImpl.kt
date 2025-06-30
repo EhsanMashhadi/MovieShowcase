@@ -26,7 +26,10 @@ import software.ehsan.movieshowcase.core.network.mapper.asDomain
 import software.ehsan.movieshowcase.core.network.service.ApiException
 import software.ehsan.movieshowcase.core.network.service.api.MovieApiService
 import software.ehsan.movieshowcase.core.util.DispatcherProvider
+import software.ehsan.movieshowcase.core.util.getCurrentDateFormatted
 import javax.inject.Inject
+
+private const val PAGE_SIZE = 20
 
 class MovieRepositoryImpl @Inject constructor(
     private val movieApiService: MovieApiService,
@@ -73,40 +76,63 @@ class MovieRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getLatestMovies(genre: Genre?, releaseDateLte: String?): Result<Movies> =
-        withContext(dispatcherProvider.io) {
-            try {
-                val latestMovieResponse = movieApiService.getLatestMovies(
-                    releaseDateLte = releaseDateLte,
-                    genreId = genre?.id
+    override fun getLatestMovies(
+        genre: Genre?,
+        releaseDateLte: String?
+    ): Flow<PagingData<Movie>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE
+            ),
+            pagingSourceFactory = {
+                val pagingSource =
+                    LatestMoviesPagingSource(
+                        moviesApiService = movieApiService,
+                        genreRepository = genreRepository,
+                        totalItemCountFlow = _totalMoviesResultCount,
+                        genre = genre,
+                        releaseDateLte = releaseDateLte
+                    )
+                pagingSource
+            }
+        ).flow.cachedIn(repositoryScope)
+    }
+
+    override suspend fun getSingleLatestMovie() = withContext(dispatcherProvider.io) {
+        try {
+            val singleLatestMovieResponse =
+                movieApiService.getLatestMovies(
+                    releaseDateLte = getCurrentDateFormatted(),
+                    genreId = null,
+                    page = null
                 )
-                if (!latestMovieResponse.isSuccessful) {
-                    return@withContext Result.failure(
-                        ApiException.ServerException(
-                            latestMovieResponse.code(),
-                            latestMovieResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
-                        )
+            if (!singleLatestMovieResponse.isSuccessful) {
+                val errorBody =
+                    singleLatestMovieResponse.errorBody()?.string() ?: ApiException.UNKNOWN_ERROR
+                val exception = when (singleLatestMovieResponse.code()) {
+                    400 -> ApiException.BadRequestException(errorBody)
+                    401 -> ApiException.UnauthorizedException(errorBody)
+                    else -> ApiException.ServerException(
+                        singleLatestMovieResponse.code(),
+                        errorBody
                     )
                 }
-                val moviesResponse =
-                    latestMovieResponse.body() ?: return@withContext Result.failure(
-                        ApiException.EmptyBodyException("Received successful status ${latestMovieResponse.code()} but response body was null")
-                    )
-                val moviesList = moviesResponse.asDomain(genreRepository = genreRepository).results
-                return@withContext Result.success(
-                    Movies(
-                        moviesResponse.page,
-                        moviesList,
-                        moviesResponse.totalPages,
-                        moviesResponse.totalResults
-                    )
-                )
-            } catch (ioException: IOException) {
-                return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
-            } catch (exception: Exception) {
-                return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
+                return@withContext Result.failure(exception)
             }
+            val moviesResponse =
+                singleLatestMovieResponse.body() ?: return@withContext Result.failure(
+                    ApiException.EmptyBodyException("Received successful status ${singleLatestMovieResponse.code()} but response body was null")
+                )
+            val moviesList = moviesResponse.asDomain(genreRepository = genreRepository)
+            return@withContext Result.success(
+                moviesList.results.first()
+            )
+        } catch (ioException: IOException) {
+            return@withContext Result.failure(ApiException.InternetException(ioException.localizedMessage))
+        } catch (exception: Exception) {
+            return@withContext Result.failure(ApiException.UnknownException(exception.localizedMessage))
         }
+    }
 
     override suspend fun getMovieDetails(movieId: Int): Result<Movie> =
         withContext(dispatcherProvider.io) {
@@ -171,11 +197,11 @@ class MovieRepositoryImpl @Inject constructor(
     override fun search(query: String): Flow<PagingData<Movie>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 20
+                pageSize = PAGE_SIZE
             ),
             pagingSourceFactory = {
                 val pagingSource =
-                    MoviesPagingSource(
+                    SearchMoviesPagingSource(
                         movieApiService,
                         genreRepository,
                         query,
