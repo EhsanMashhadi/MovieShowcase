@@ -2,20 +2,41 @@ package software.ehsan.movieshowcase.core.navigation
 
 import kotlinx.serialization.Serializable
 
-
-sealed class Screens {
+@Serializable
+sealed interface Screens {
     @Serializable
-    data class MovieDetails(val movieId: Int) : Screens()
-
-    @Serializable
-    data object Dashboard : Screens()
+    data object DashboardNavGraph : Screens
 
     @Serializable
-    data object Latest : Screens()
+    data object SearchNavGraph : Screens
 
     @Serializable
-    data object Bookmarks : Screens()
+    data object BookmarksNavGraph : Screens
+}
+
+@Serializable
+sealed interface DashboardNavGraphScreens {
+    @Serializable
+    data object Dashboard : DashboardNavGraphScreens
 
     @Serializable
-    data object Search : Screens()
+    data object Latest : DashboardNavGraphScreens
+}
+
+@Serializable
+sealed interface SearchNavGraphScreens {
+    @Serializable
+    data object Search : SearchNavGraphScreens
+}
+
+@Serializable
+sealed interface BookmarkNavGraphScreens {
+    @Serializable
+    data object Bookmark : BookmarkNavGraphScreens
+}
+
+@Serializable
+sealed interface DetailsNavGraphScreens {
+    @Serializable
+    data class MovieDetails(val movieId: Int) : DetailsNavGraphScreens
 }
