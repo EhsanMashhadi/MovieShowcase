@@ -2,7 +2,7 @@
 datastorePreferences = "1.1.7"
 kotlin = "2.2.20"
 agp = "8.13.0"
-ksp = "2.2.20-2.0.4"
+ksp = "2.3.0"
 coreKtx = "1.16.0"
 composeBom = "2025.10.00"
 lifecycle = "2.9.4"
