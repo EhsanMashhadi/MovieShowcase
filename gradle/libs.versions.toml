@@ -1,8 +1,8 @@
 [versions]
 datastorePreferences = "1.2.0"
-kotlin = "2.2.21"
+kotlin = "2.3.10"
 agp = "8.13.2"
-ksp = "2.3.3"
+ksp = "2.3.5"
 coreKtx = "1.16.0"
 composeBom = "2025.12.01"
 lifecycle = "2.10.0"
